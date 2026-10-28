@@ -1,0 +1,612 @@
+<title>Sun Finder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed map; trip bar, filters and results float over it as quiet sheets. */
+:root {
+  --bg: #f3f4f6; --panel: #ffffff; --ink: #15181e; --muted: #6b7280; --faint: #9aa1ad; --line: #eceef2;
+  --land: #e4e7ec; --sea: #f1f3f6;
+  --sun: #f2a516; --sun-soft: #fdf3dc; --good: #1f8a52; --halo: #ffffff; --rain: #3b82f6;
+  --z0: #c3cddd; --z1: #dbe0e9; --z2: #f6efd6; --z3: #f8dc98; --z4: #f5c16b; --z5: #ef9f48;
+  --shadow: 0 1px 2px rgba(16,24,40,.04), 0 10px 30px rgba(16,24,40,.08);
+  --sans: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e1116; --panel: #161a21; --ink: #e9ecf1; --muted: #9aa3b2; --faint: #6b7483; --line: #232933;
+  --land: #262c36; --sea: #12161c;
+  --sun: #f6b23a; --sun-soft: #3a2f17; --good: #4cc483; --halo: #12161c; --rain: #6ea8ff;
+  --z0: #2a3244; --z1: #323947; --z2: #4a4535; --z3: #66562e; --z4: #85622a; --z5: #a06327;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35); color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0e1116; --panel: #161a21; --ink: #e9ecf1; --muted: #9aa3b2; --faint: #6b7483; --line: #232933;
+  --land: #262c36; --sea: #12161c;
+  --sun: #f6b23a; --sun-soft: #3a2f17; --good: #4cc483; --halo: #12161c; --rain: #6ea8ff;
+  --z0: #2a3244; --z1: #323947; --z2: #4a4535; --z3: #66562e; --z4: #85622a; --z5: #a06327;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 10px 30px rgba(0,0,0,.35); color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 400 14px/1.45 var(--sans); -webkit-font-smoothing: antialiased; font-feature-settings: "tnum" 1; }
+.app { position: relative; height: 100%; overflow: hidden; --gut-l: max(16px, env(safe-area-inset-left, 0px)); --gut-r: max(16px, env(safe-area-inset-right, 0px)); --top: calc(16px + env(safe-area-inset-top, 0px)); }
+.float { position: absolute; z-index: 2; background: color-mix(in srgb, var(--panel) 94%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 16px; box-shadow: var(--shadow); }
+
+/* Trip bar */
+header.topbar { top: var(--top); left: 50%; transform: translateX(-50%); width: min(760px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; }
+.topline { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 20px; }
+.topline .trip { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; flex: 1 1 380px; min-width: 0; }
+.topline .trip label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 500; color: var(--muted); min-width: 0; }
+.topline .trip select, .topline .trip input { width: 100%; height: 34px; padding: 0 10px; box-sizing: border-box; }
+h1 { font: 600 16px/1 var(--sans); margin: 0; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; white-space: nowrap; padding-bottom: 9px; }
+h1 svg { flex: none; width: 20px; height: 20px; }
+.compare { font-size: 12.5px; color: var(--muted); min-width: 0; margin: 0; padding-top: 9px; border-top: 1px solid var(--line); text-wrap: pretty; }
+.compare b { color: var(--ink); font-weight: 500; }
+.compare .up { color: var(--good); font-weight: 500; }
+.compare .fcnote { display: block; font-size: 11.5px; color: var(--faint); margin-bottom: 2px; }
+
+/* Panels */
+.panelhead { all: unset; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; font: 600 14px var(--sans); padding: 14px 16px 10px; }
+.panelhead:focus-visible { outline: 2px solid var(--sun); outline-offset: -2px; border-radius: 16px; }
+.panelhead .chev { font-size: 10px; color: var(--faint); transition: transform .15s; }
+.collapsed .panelbody { display: none; }
+.collapsed .chev { transform: rotate(180deg); }
+aside.controls { left: var(--gut-l); top: var(--panel-top, 130px); width: 260px; max-height: calc(100% - var(--panel-top, 130px) - 16px); display: flex; flex-direction: column; }
+aside.controls .panelbody { padding: 0 16px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; }
+details.about summary { cursor: pointer; font-size: 12.5px; color: var(--muted); font-weight: 500; }
+details.about { display: flex; flex-direction: column; gap: 8px; }
+details.about .note + .note { margin-top: 8px; }
+.mobilebar { display: none; }
+.group { display: flex; flex-direction: column; gap: 12px; }
+.group h2 { font: 500 11.5px/1 var(--sans); color: var(--faint); margin: 0; }
+label.f { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.row output { font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; }
+input[type=date], select { font: 400 13.5px var(--sans); color: var(--ink); background: var(--bg); border: 1px solid transparent; border-radius: 8px; padding: 7px 10px; width: 100%; min-width: 0; }
+input[type=date]:hover, select:hover { border-color: var(--line); }
+input[type=range] { width: 100%; accent-color: var(--ink); margin: 0; height: 16px; }
+:focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 2px; background: var(--bg); border-radius: 9px; }
+.seg button { font: 400 12.5px var(--sans); background: transparent; color: var(--muted); border: 0; border-radius: 7px; padding: 6px 2px; cursor: pointer; }
+.seg button[aria-pressed=true] { background: var(--panel); color: var(--ink); font-weight: 500; box-shadow: 0 1px 2px rgba(16,24,40,.08); }
+.note { font-size: 12px; color: var(--muted); line-height: 1.55; margin: 0; }
+.note b { font-weight: 500; color: var(--ink); }
+
+/* Map */
+.mapwrap { position: absolute; inset: 0; background: var(--sea); overflow: hidden; }
+#map { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+#map .land { fill: var(--land); stroke: none; }
+#map .outline { fill: none; stroke: var(--halo); stroke-opacity: .8; stroke-width: 0.6; vector-effect: non-scaling-stroke; pointer-events: none; }
+#map .grat { fill: none; stroke: var(--ink); stroke-opacity: .04; stroke-width: 0.5; vector-effect: non-scaling-stroke; }
+#map .zones { pointer-events: none; }
+#map .zone { stroke: none; }
+#map .city { cursor: pointer; }
+#map .city .hit { fill: transparent; stroke: none; }
+#map .city .dot { stroke: var(--halo); stroke-width: 1.5; }
+#map .city.out .dot { fill: var(--faint); stroke: none; opacity: .6; }
+#map .city.home .dot { fill: var(--panel); stroke: var(--ink); stroke-width: 2; }
+#map .city.sel .dot { stroke: var(--ink); stroke-width: 2; }
+#map .city text { font: 500 11.5px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+#map .city.home text { font-weight: 600; }
+.legend { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: color-mix(in srgb, var(--panel) 94%, transparent); border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 12px; padding: 8px 12px; font-size: 11.5px; color: var(--muted); display: flex; flex-direction: column; gap: 6px; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
+.legend .bar { height: 6px; width: 180px; max-width: 100%; border-radius: 3px; }
+.legend .sw { display: grid; grid-template-columns: repeat(6, 36px); gap: 2px; }
+.legend .sw i { height: 6px; border-radius: 3px; }
+.legend .sw span { font-size: 10.5px; color: var(--faint); text-align: center; }
+.legend .dots { color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.legend .dots .bar { width: 90px; height: 5px; }
+.zoom { position: absolute; z-index: 1; right: var(--gut-r); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column;
+  background: var(--panel); border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+.zoom button { width: 34px; height: 34px; display: grid; place-items: center; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); font: 400 17px/1 var(--sans); cursor: pointer; padding: 0; }
+.zoom button:last-child { border-bottom: 0; }
+.zoom button:hover { background: var(--bg); }
+.zoom svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
+
+/* Results */
+aside.list { right: var(--gut-r); top: var(--panel-top, 130px); width: 350px; max-height: calc(100% - var(--panel-top, 130px) - 100px); display: flex; flex-direction: column; overflow: hidden; }
+aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.panelhead .cnt { font: 400 12.5px var(--sans); color: var(--faint); margin-left: auto; margin-right: 10px; }
+.listhead { padding: 0 16px 10px; display: flex; flex-direction: column; gap: 8px; }
+.key { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--faint); }
+.key i { display: inline-block; width: 4px; height: 9px; border-radius: 1px; vertical-align: -1px; margin-right: 5px; background: var(--sun); }
+.key i.t { opacity: .38; } .key i.r { width: 4px; height: 4px; border-radius: 50%; background: var(--rain); vertical-align: 1px; }
+.cols, #results li button { display: grid; grid-template-columns: minmax(0, 1fr) 108px 40px 46px; gap: 10px; align-items: center; }
+.cols { padding: 6px 16px; font-size: 11px; color: var(--faint); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.cols span:nth-child(n+3) { text-align: right; }
+#results { list-style: none; margin: 0; padding: 4px 0; overflow-y: auto; flex: 1; }
+#results li button { all: unset; box-sizing: border-box; width: 100%; padding: 9px 16px; cursor: pointer; display: grid; grid-template-columns: minmax(0, 1fr) 108px 40px 46px; gap: 10px; align-items: center; }
+#results li + li button { box-shadow: inset 0 1px 0 var(--line); }
+#results li button:hover { background: color-mix(in srgb, var(--bg) 70%, transparent); }
+#results li button.sel { background: var(--sun-soft); }
+#results li button:focus-visible { outline: 2px solid var(--sun); outline-offset: -2px; }
+.pl { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.pl .nm { font: 500 13.5px/1.25 var(--sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl .meta { font-size: 11.5px; color: var(--faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spark { display: flex; align-items: center; gap: 8px; }
+.spark b { font: 500 13px var(--sans); width: 26px; text-align: right; flex: none; }
+.spark svg { display: block; overflow: visible; }
+.spark .dl { fill: color-mix(in srgb, var(--ink) 7%, transparent); }
+.spark .s { fill: var(--sun); } .spark .s.t { opacity: .38; }
+.spark .rn { fill: var(--rain); } .spark .rn.t { opacity: .4; }
+.tmp { display: flex; align-items: center; justify-content: flex-end; gap: 4px; font: 400 13px var(--sans); }
+.tmp svg { width: 13px; height: 13px; color: var(--faint); } .tmp.clear svg { color: var(--sun); }
+.fare { font: 500 13px var(--sans); text-align: right; }
+.empty { padding: 24px 16px; color: var(--muted); font-size: 13px; }
+
+/* Destination card */
+.detail { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom, 0px)); width: 340px; max-width: calc(100% - 32px); background: var(--panel); border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent); border-radius: 16px; padding: 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 14px; }
+.detail h3 { font: 600 17px/1.2 var(--sans); margin: 0; letter-spacing: -0.01em; }
+.detail .sub { font-size: 12px; color: var(--faint); margin-top: 2px; }
+.detail .close { position: absolute; right: 10px; top: 10px; border: 0; background: transparent; color: var(--faint); font-size: 18px; cursor: pointer; width: 28px; height: 28px; border-radius: 8px; }
+.detail .close:hover { background: var(--bg); color: var(--ink); }
+.kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 10px; }
+.kv div { display: flex; flex-direction: column; gap: 2px; }
+.kv span { font-size: 11px; color: var(--faint); }
+.kv b { font: 500 14px var(--sans); }
+.fchead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: -6px; }
+.fchead span { font-size: 11.5px; font-weight: 500; color: var(--muted); }
+.fchead small { font-size: 11px; color: var(--faint); text-align: right; }
+.fcst { display: flex; overflow-x: auto; padding-bottom: 2px; }
+.fcst div { flex: none; width: 42px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 0; font-size: 10.5px; }
+.fcst div + div { box-shadow: inset 1px 0 0 var(--line); }
+.fcst svg { width: 15px; height: 15px; color: var(--faint); }
+.fcst .clear svg { color: var(--sun); }
+.fcst b { font: 500 12.5px var(--sans); }
+.fcst span { color: var(--faint); white-space: nowrap; }
+.months svg { width: 100%; height: auto; display: block; }
+.months text { font: 9px var(--sans); fill: var(--faint); }
+.links { display: flex; gap: 8px; flex-wrap: wrap; }
+.links a { font-size: 12.5px; font-weight: 500; color: var(--ink); text-decoration: none; border-radius: 8px; padding: 7px 11px; background: var(--bg); }
+.links a:hover { background: var(--sun-soft); }
+
+@media (max-width: 760px) {
+  header.topbar { padding: 10px 12px; gap: 8px; }
+  .topline .trip { grid-template-columns: 1fr 1fr; flex-basis: 100%; }
+  .topline .trip label:first-child { grid-column: 1 / -1; }
+  .legend { display: none; }
+  aside.controls, aside.list { display: none; left: var(--gut-l); right: var(--gut-r); top: auto; width: auto;
+    bottom: calc(68px + env(safe-area-inset-bottom, 0px)); max-height: 58%; }
+  .app[data-sheet="controls"] aside.controls, .app[data-sheet="list"] aside.list { display: flex; }
+  aside.controls.collapsed .panelbody, aside.list.collapsed .panelbody { display: flex; }
+  .panelhead .chev { display: none; }
+  .mobilebar { display: flex; position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); gap: 2px; padding: 3px; border-radius: 12px; }
+  .mobilebar button { font: 500 13px var(--sans); color: var(--muted); background: transparent; border: 0; border-radius: 9px; padding: 8px 16px; cursor: pointer; }
+  .mobilebar button[aria-pressed=true] { background: var(--bg); color: var(--ink); }
+  .zoom { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  .detail { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="app" id="app">
+  <header class="topbar float">
+    <div class="topline">
+    <h1><svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="6" fill="var(--sun)"/><g stroke="var(--sun)" stroke-width="2" stroke-linecap="round"><path d="M13 1.5v3M13 21.5v3M1.5 13h3M21.5 13h3M4.9 4.9l2.1 2.1M19 19l2.1 2.1M4.9 21.1L7 19M19 7l2.1-2.1"/></g></svg>Sun Finder</h1>
+      <div class="trip">
+        <label>From <select id="home"></select></label>
+        <label>Depart <input type="date" id="dep"></label>
+        <label>Return <input type="date" id="ret"></label>
+      </div>
+    </div>
+    <p class="compare" id="compare"></p>
+  </header>
+
+  <aside class="controls float" id="controls">
+    <button class="panelhead" aria-expanded="true">Filters <span class="chev">▲</span></button>
+    <div class="panelbody">
+    <div class="group">
+      <h2>Light</h2>
+      <label class="f"><span class="row">Daylight at least <output id="o-day"></output></span>
+        <input type="range" id="minDay" min="0" max="14" step="0.5" value="9"></label>
+      <label class="f"><span class="row">Actual sunshine at least <output id="o-sun"></output></span>
+        <input type="range" id="minSun" min="0" max="12" step="0.5" value="6"></label>
+    </div>
+    <div class="group">
+      <h2>Weather</h2>
+      <label class="f"><span class="row">Daytime high at least <output id="o-temp"></output></span>
+        <input type="range" id="minTemp" min="-5" max="35" step="1" value="16"></label>
+      <label class="f"><span class="row">Rain on at most <output id="o-rain"></output></span>
+        <input type="range" id="maxRain" min="0" max="100" step="10" value="40"></label>
+    </div>
+    <div class="group">
+      <h2>Flight</h2>
+      <label class="f"><span class="row">Return fare up to <output id="o-cost"></output></span>
+        <input type="range" id="maxCost" min="100" max="1500" step="25" value="600"></label>
+      <label class="f"><span class="row">Flight time up to <output id="o-time"></output></span>
+        <input type="range" id="maxTime" min="2" max="16" step="0.5" value="8"></label>
+    </div>
+    <div class="group">
+      <h2>Colour the map by</h2>
+      <div class="seg" id="colorBy" role="group" aria-label="Colour the map by">
+        <button data-k="sun" aria-pressed="true">Sun</button>
+        <button data-k="day" aria-pressed="false">Daylight</button>
+        <button data-k="temp" aria-pressed="false">Warmth</button>
+        <button data-k="cost" aria-pressed="false">Fare</button>
+      </div>
+    </div>
+    <details class="about"><summary>About the numbers</summary>
+    <p class="note"><b>Weather</b> uses the 16-day forecast (Open-Meteo) for any trip days it covers, marked <b>Forecast</b>. Days further out use the typical weather for that time of year from 2022–2025 records (ERA5), marked <b>Typical</b>. <b>Daylight</b> is sunrise to sunset for your exact dates. <b>Sunshine</b> is hours of direct sun per day. It reads about 1 h high in cloudy places, so compare places with each other rather than trusting the absolute number.</p>
+    <p class="note"><b>Fares</b> are rough estimates from distance, season and how many budget airlines fly the route. Open a destination and check the live prices before you plan around them.</p>
+    </details>
+    </div>
+  </aside>
+
+  <div class="mapwrap">
+    <svg id="map" role="img" aria-label="World map of destinations coloured by sunshine"></svg>
+    <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show nearest destinations" title="Nearest destinations"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
+    <div class="legend" id="legend"></div>
+    <div class="detail" id="detail" hidden></div>
+  </div>
+
+  <aside class="list float" id="list">
+    <button class="panelhead" aria-expanded="true">Places that match <span class="cnt" id="count"></span><span class="chev">▲</span></button>
+    <div class="panelbody">
+    <div class="listhead">
+      <select id="sort" aria-label="Sort destinations">
+        <option value="sun">Most sunshine</option>
+        <option value="value">Most sun per euro</option>
+        <option value="cost">Cheapest fare</option>
+        <option value="time">Shortest flight</option>
+        <option value="temp">Warmest</option>
+      </select>
+      <div class="key"><span><i></i>Forecast sun</span><span><i class="t"></i>Typical sun</span><span><i class="r"></i>Rain</span><span>Grey: daylight</span></div>
+    </div>
+    <div class="cols" aria-hidden="true"><span>Place</span><span>Sun each day</span><span>High</span><span>Fare</span></div>
+    <ul id="results"></ul>
+    </div>
+  </aside>
+
+  <nav class="mobilebar float" aria-label="Panels">
+    <button data-sheet="controls" aria-pressed="false">Filters</button>
+    <button data-sheet="list" aria-pressed="false">Places</button>
+  </nav>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+<script>
+const WORLD = /*WORLD*/null;
+const CITIES = /*CLIMATE*/[];
+const FORECAST = /*FORECAST*/{d: {}};
+const MONTHS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+const BUDGET = new Set(["Portugal","Spain","Italy","Greece","Malta","Cyprus","Türkiye","Morocco","Tunisia","Egypt","France","Israel","Jordan"]);
+const HUBS = new Set(["DXB","AUH","DOH","BKK","SIN","CUN","MIA","IST","LAX"]);
+const $ = id => document.getElementById(id);
+const fmtDate = d => d.toISOString().slice(0,10);
+const isMobile = () => matchMedia("(max-width: 760px)").matches;
+const ICON = {
+  sun: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg>',
+  clear: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1.5v1.6M8 12.9v1.6M1.5 8h1.6M12.9 8h1.6M3.4 3.4l1.1 1.1M11.5 11.5l1.1 1.1M3.4 12.6l1.1-1.1M11.5 4.5l1.1-1.1"/></svg>',
+  partly: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="5.5" cy="5.5" r="2.3" stroke="var(--sun)" fill="var(--sun)"/><path d="M5.5 1v.9M1 5.5h.9M2.3 2.3l.6.6M8.7 2.3l-.6.6" stroke="var(--sun)"/><path d="M5.5 13.5h6a2.6 2.6 0 0 0 .2-5.2 3.4 3.4 0 0 0-6.4 1.1 2.05 2.05 0 0 0 .2 4.1z" fill="var(--panel)"/></svg>',
+  cloud: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M4.5 12.5h7.2a2.8 2.8 0 0 0 .2-5.6 3.8 3.8 0 0 0-7.3 1.3 2.15 2.15 0 0 0-.1 4.3z"/></svg>',
+  rain: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 10h7.2a2.8 2.8 0 0 0 .2-5.6 3.8 3.8 0 0 0-7.3 1.3A2.15 2.15 0 0 0 4.5 10z"/><path d="M5.5 12.2l-.6 1.6M8.5 12.2l-.6 1.6M11.5 12.2l-.6 1.6"/></svg>',
+  plane: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M14.6 8c0-.6-.5-1.05-1.1-1.05H10.2L7.1 2H5.6l1.6 4.95H4.1L3 5.4H2l.55 2.6L2 10.6h1l1.1-1.55h3.1L5.6 14h1.5l3.1-4.95h3.3c.6 0 1.1-.45 1.1-1.05z"/></svg>',
+};
+// Typical sky for the trip, from average cloud cover and rainy days
+const sky = r => r.rainPct >= 35 ? {k: "rain", t: "showery"} : r.cloud >= 62 ? {k: "cloud", t: "mostly cloudy"}
+  : r.cloud >= 38 ? {k: "partly", t: "partly cloudy"} : {k: "clear", t: "mostly sunny"};
+// Sun hours per trip day as tiny bars over a daylight track; solid = forecast, pale = typical, dot = rain
+function spark(r) {
+  const W = 70, H = 16, n = r.series.length, g = n > 12 ? 1.5 : 2.5, bw = Math.max(1.2, (W - g * (n - 1)) / n), y = v => Math.min(v, 14) / 14 * H;
+  return `<svg width="${W}" height="${H + 6}" viewBox="0 0 ${W} ${H + 6}" aria-hidden="true">${r.series.map((x, i) => { const X = (i * (bw + g)).toFixed(1);
+    return `<rect class="dl" x="${X}" y="${(H - y(x.dl)).toFixed(1)}" width="${bw.toFixed(1)}" height="${y(x.dl).toFixed(1)}" rx="1"/>` +
+      `<rect class="s${x.fc ? "" : " t"}" x="${X}" y="${(H - y(Math.min(x.sun, x.dl))).toFixed(1)}" width="${bw.toFixed(1)}" height="${y(Math.min(x.sun, x.dl)).toFixed(1)}" rx="1"/>` +
+      (x.rain ? `<circle class="rn${x.fc ? "" : " t"}" cx="${(+X + bw / 2).toFixed(1)}" cy="${H + 3.5}" r="1.6"/>` : ""); }).join("")}</svg>`;
+}
+const short = n => n.replace(/ \(.*\)/, "");
+
+// ---- Astronomy: daylight hours for a latitude and day of year (sunrise to sunset, incl. refraction)
+function daylight(lat, doy) {
+  const decl = 23.44 * Math.sin((2*Math.PI/365) * (doy - 81)) * Math.PI/180;
+  const phi = lat * Math.PI/180, h0 = -0.833 * Math.PI/180;
+  const c = (Math.sin(h0) - Math.sin(phi)*Math.sin(decl)) / (Math.cos(phi)*Math.cos(decl));
+  if (c <= -1) return 24; if (c >= 1) return 0;
+  return 2 * Math.acos(c) * 180/Math.PI / 15;
+}
+const doyOf = d => Math.floor((d - Date.UTC(d.getUTCFullYear(),0,0)) / 864e5);
+function tripDays() {
+  let a = new Date($("dep").value + "T00:00Z"), b = new Date($("ret").value + "T00:00Z");
+  if (isNaN(a)) a = new Date(); if (isNaN(b) || b < a) b = new Date(+a + 7*864e5);
+  const days = []; for (let t = +a; t <= +b && days.length < 366; t += 864e5) days.push(new Date(t));
+  return {a, b, days};
+}
+const hav = (la1, lo1, la2, lo2) => { const r = Math.PI/180, dl = (la2-la1)*r, dn = (lo2-lo1)*r;
+  const x = Math.sin(dl/2)**2 + Math.cos(la1*r)*Math.cos(la2*r)*Math.sin(dn/2)**2; return 12742*Math.asin(Math.sqrt(x)); };
+
+// ---- Fare model (return, economy, one person). Deliberately simple; links go to live prices.
+function fare(home, c, dep) {
+  const d = hav(home.la, home.lo, c.la, c.lo);
+  if (d < 150) return {d, eur: 0, hrs: 0};
+  let p = d < 1500 ? 60 + 0.09*d : d < 4000 ? 90 + 0.075*d : 250 + 0.05*d;
+  if (BUDGET.has(c.c) && d < 4500) p *= 0.8; else if (HUBS.has(c.i)) p *= 0.9;
+  const m = dep.getUTCMonth(), day = dep.getUTCDate();
+  if ((m === 11 && day >= 18) || (m === 0 && day <= 6)) p *= 1.45;
+  else if (m === 6 || m === 7) p *= 1.3;
+  else if (m === 10 || m === 0 || m === 1 || (m === 11 && day < 18)) p *= 0.88;
+  const lead = (dep - Date.now()) / 864e5;
+  if (lead < 14) p *= 1.25; else if (lead > 60) p *= 0.95;
+  const hrs = d/800 + 0.6 + (d > 5000 ? 1.5 : 0); // long trips usually connect
+  return {d, eur: Math.round(p/5)*5, hrs};
+}
+
+// ---- Per-city figures for the chosen dates
+// Per trip day: the forecast where it exists, otherwise that month's 2022–2025 average
+function compute(home, trip) {
+  const n = trip.days.length;
+  return CITIES.map(c => {
+    const fc = FORECAST.d[c.i], f0 = fc ? Date.parse(fc.s + "T00:00Z") : 0;
+    let sun = 0, day = 0, temp = 0, rain = 0, cloud = 0, nf = 0; const daily = [], series = [];
+    for (const d of trip.days) {
+      const dl = daylight(c.la, doyOf(d)); day += dl;
+      const k = fc ? Math.round((d - f0) / 864e5) : -1, row = k >= 0 && k < fc.d.length ? fc.d[k] : null;
+      if (row) { nf++; sun += Math.min(row[0], dl); temp += row[1]; rain += row[2] >= 1 ? 1 : 0; cloud += row[3];
+        daily.push({d, sun: row[0], t: row[1], mm: row[2], code: row[5]}); series.push({sun: row[0], dl, rain: row[2] >= 1, fc: 1}); }
+      else { const m = c.m[d.getUTCMonth()]; sun += Math.min(m[0], dl); temp += m[2]; rain += m[3] / 30; cloud += m[4]; series.push({sun: m[0], dl, rain: m[3] / 30 >= 0.3, fc: 0}); }
+    }
+    const f = fare(home, c, trip.a);
+    return {...c, day: day/n, sun: sun/n, temp: temp/n, rainDays: rain, rainPct: rain/n*100, cloud: cloud/n, nf, nd: n, daily, series, ...f};
+  });
+}
+// WMO weather code → icon
+const codeIcon = c => c <= 1 ? "clear" : c === 2 ? "partly" : c <= 48 || (c >= 71 && c <= 77) ? "cloud" : "rain";
+const srcBadge = r => r.nf === r.nd ? `<span class="src fc">Forecast</span>`
+  : r.nf ? `<span class="src mix" title="${r.nf} of ${r.nd} days from the forecast, the rest typical">Forecast ${r.nf}/${r.nd} d</span>`
+  : `<span class="src" title="Beyond the 16-day forecast: typical weather from 2022–2025">Typical</span>`;
+const rainText = r => Math.round(r.rainDays) < 1 ? "no rain" : `${Math.round(r.rainDays)} rainy day${Math.round(r.rainDays) === 1 ? "" : "s"}`;
+
+// ---- State
+const S = {colorBy: "sun", sel: null, rows: []};
+const homeCities = CITIES.filter(c => c.r === "Home");
+$("home").innerHTML = homeCities.map(c => `<option value="${c.i}">${c.n} (${c.i})</option>`).join("");
+try { const h = localStorage.getItem("sf-home"); if (h && homeCities.some(c => c.i === h)) $("home").value = h; } catch (e) {}
+{ const t = new Date(); const a = new Date(Date.UTC(t.getFullYear(), t.getMonth(), t.getDate() + 5)); const b = new Date(+a + 7*864e5);
+  $("dep").value = fmtDate(a); $("ret").value = fmtDate(b); }
+
+const scales = {
+  sun:  {dom: [0, 4, 8, 11], lab: "Sunshine per day", unit: "h", ticks: [0, 4, 8, 11]},
+  day:  {dom: [6, 9, 11.5, 14], lab: "Daylight per day", unit: "h", ticks: [6, 9, 12, 14]},
+  temp: {dom: [0, 12, 22, 32], lab: "Average daytime high", unit: "°", ticks: [0, 12, 22, 32]},
+  cost: {dom: [1200, 700, 350, 100], lab: "Estimated return fare", unit: "€", ticks: [1200, 700, 350, 100]},
+};
+const RAMP = ["#4b5c86", "#8b79a8", "#e39a16", "#ffd23a"];
+const colorFor = (k, v) => d3.scaleLinear().domain(scales[k].dom).range(RAMP).clamp(true)(v);
+
+// ---- Map
+const svg = d3.select("#map"), g = svg.append("g");
+const proj = d3.geoNaturalEarth1(), path = d3.geoPath(proj);
+const land = topojson.feature(WORLD, WORLD.objects.countries);
+const borders = topojson.mesh(WORLD, WORLD.objects.countries);
+const gClip = g.append("clipPath").attr("id", "landclip");
+const gLand = g.append("g"), gZone = g.append("g").attr("class", "zones").attr("clip-path", "url(#landclip)"), gGrat = g.append("g");
+// Cities live outside the zoomed group so dots and labels stay the same size at every zoom level
+const gCity = svg.append("g");
+let W = 0, H = 0, K = 1, T = d3.zoomIdentity, FREE = null;
+function layout() {
+  const r = svg.node().getBoundingClientRect(); W = r.width; H = r.height;
+  svg.attr("viewBox", `0 0 ${W} ${H}`);
+  // Fit the globe into the open space between the floating panels
+  const top = document.querySelector(".topbar").getBoundingClientRect().bottom - r.top;
+  $("app").style.setProperty("--panel-top", `${Math.round(top + 12)}px`);
+  const mobile = isMobile();
+  const side = id => !mobile && !$(id).classList.contains("collapsed") ? $(id).getBoundingClientRect() : null;
+  const c = side("controls"), l = side("list");
+  let x0 = c ? c.right - r.left + 12 : 8, x1 = l ? l.left - r.left - 12 : W - 8;
+  if (x1 - x0 < 420) { x0 = 8; x1 = W - 8; }
+  FREE = {x0, x1, y0: top + 8, y1: H - (mobile ? 74 : 64)};
+  proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "Sphere"});
+  gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
+  gClip.selectAll("path").data(land.features).join("path").attr("d", path);
+  gGrat.selectAll("path.grat").data([d3.geoGraticule10()]).join("path").attr("class", "grat").attr("d", path);
+  gGrat.selectAll("path.outline").data([borders]).join("path").attr("class", "outline").attr("d", path);
+  drawZones(); drawCities();
+  if (!S.zoomed) { S.zoomed = true; zoomNearby(false); }
+}
+// Frame the home city and its nearest destinations inside the open area
+function zoomNearby(animate) {
+  const home = S.rows.find(r => r.i === $("home").value); if (!home || !FREE) return;
+  const near = S.rows.filter(r => r.r !== "Home").sort((a, b) => a.d - b.d).slice(0, 14);
+  const pts = [home, ...near].map(c => proj([c.lo, c.la]));
+  const [xa, xb] = d3.extent(pts, p => p[0]), [ya, yb] = d3.extent(pts, p => p[1]);
+  const pad = 40, fw = FREE.x1 - FREE.x0 - 2*pad, fh = FREE.y1 - FREE.y0 - 2*pad;
+  const k = Math.max(1, Math.min(12, fw / (xb - xa || 1), fh / (yb - ya || 1)));
+  const t = d3.zoomIdentity.translate((FREE.x0 + FREE.x1)/2 - k*(xa + xb)/2, (FREE.y0 + FREE.y1)/2 - k*(ya + yb)/2).scale(k);
+  (animate ? svg.transition().duration(650) : svg).call(zoom.transform, t);
+}
+const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => { T = e.transform; K = T.k; g.attr("transform", T); drawCities(); });
+svg.call(zoom).on("dblclick.zoom", null);
+$("zin").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.6);
+$("zout").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1/1.6);
+$("znear").onclick = () => zoomNearby(true);
+$("zworld").onclick = () => svg.transition().duration(650).call(zoom.transform, d3.zoomIdentity);
+
+// ---- Sunshine zones: inverse-distance blend of the stations on a 1° grid, banded every 2 h.
+// Cells more than 900 km from any station stay empty rather than guessing.
+const ZONES = [0, 2, 4, 6, 8, 10];
+function computeZones() {
+  const pts = S.rows.map(r => ({la: r.la, lo: r.lo, v: r.sun}));
+  const nx = 360, ny = 180, vals = new Float64Array(nx * ny).fill(-1);
+  for (let y = 0; y < ny; y++) {
+    const la = 89.5 - y; if (la > 72 || la < -50) continue;
+    for (let x = 0; x < nx; x++) {
+      const lo = -179.5 + x; let ws = 0, vs = 0, hit = null;
+      for (const p of pts) {
+        if (Math.abs(p.la - la) > 8.2) continue;
+        const d = hav(la, lo, p.la, p.lo); if (d > 900) continue;
+        if (d < 40) { hit = p.v; break; }
+        const w = 1 / (d * d); ws += w; vs += w * p.v;
+      }
+      if (hit !== null) vals[y*nx + x] = hit; else if (ws) vals[y*nx + x] = vs / ws;
+    }
+  }
+  S.zones = d3.contours().size([nx, ny]).thresholds(ZONES)(vals).map(c => {
+    const polys = c.coordinates.map(poly => {
+      const rings = poly.map(ring => ring.map(([x, y]) => [x - 180, 90 - y]));
+      // Flipping y reverses winding; d3-geo would read that as "everything but this shape"
+      if (d3.geoArea({type: "Polygon", coordinates: rings}) > 2 * Math.PI) rings.forEach(r => r.reverse());
+      return rings;
+    });
+    return {value: c.value, geo: {type: "MultiPolygon", coordinates: polys}};
+  });
+}
+function drawZones() {
+  if (!S.zones) return;
+  gZone.selectAll("path").data(S.zones).join("path").attr("class", "zone").attr("d", d => path(d.geo)).style("fill", d => `var(--z${ZONES.indexOf(d.value)})`);
+}
+
+function passes(r, f) {
+  return r.day >= f.minDay && r.sun >= f.minSun && r.temp >= f.minTemp && r.rainPct <= f.maxRain && r.eur <= f.maxCost && r.hrs <= f.maxTime && r.r !== "Home";
+}
+function drawCities() {
+  const rows = S.rows; if (!rows.length) return;
+  const home = $("home").value;
+  const pos = new Map(rows.map(d => [d.i, T.apply(proj([d.lo, d.la]))]));
+  const inView = d => { const [x, y] = pos.get(d.i); return x > -20 && x < W + 20 && y > -20 && y < H + 20; };
+  // Greedy label placement: home and selection first, then by rank; try right, then left, else skip
+  const pri = d => d.i === home ? -2 : d.i === S.sel ? -1 : d.ok ? d.rank : 1e3;
+  const shown = rows.filter(d => (d.ok || d.i === home || d.i === S.sel) && inView(d)).sort((a, b) => pri(a) - pri(b));
+  const boxes = shown.map(d => { const [x, y] = pos.get(d.i); return {x: x - 6, y: y - 6, w: 12, h: 12}; });
+  const side = new Map();
+  for (const d of shown) {
+    const [x, y] = pos.get(d.i), w = short(d.n).length * 7 + 4, h = 15;
+    for (const s of [1, -1]) {
+      const b = {x: s > 0 ? x + 9 : x - 9 - w, y: y - h/2, w, h};
+      const own = o => Math.abs(o.x + 6 - x) < 0.1 && Math.abs(o.y + 6 - y) < 0.1;
+      if (b.x < 4 || b.x + w > W - 4) continue;
+      if (!boxes.some(o => !own(o) && b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h)) { boxes.push(b); side.set(d.i, s); break; }
+    }
+  }
+  const sel = gCity.selectAll("g.city").data(rows, d => d.i).join(enter => {
+    const e = enter.append("g").attr("class", "city");
+    e.append("circle").attr("class", "hit").attr("r", 12);
+    e.append("circle").attr("class", "dot"); e.append("text").attr("dy", "0.35em");
+    e.on("click", (ev, d) => select(d.i));
+    e.append("title");
+    return e;
+  });
+  sel.attr("transform", d => `translate(${pos.get(d.i)})`)
+    .classed("out", d => !d.ok && d.i !== home && d.i !== S.sel).classed("sel", d => d.i === S.sel).classed("home", d => d.i === home);
+  sel.select(".dot").attr("r", d => d.i === S.sel ? 7.5 : d.i === home ? 6 : d.ok ? 5.5 : 2.5)
+    .style("fill", d => d.i === home || !d.ok && d.i !== S.sel ? null
+      : S.colorBy === "sun" ? "var(--ink)" : colorFor(S.colorBy, d[S.colorBy === "cost" ? "eur" : S.colorBy]));
+  sel.select("text").attr("x", d => (side.get(d.i) || 1) * 10).attr("text-anchor", d => side.get(d.i) === -1 ? "end" : "start")
+    .text(d => side.has(d.i) ? short(d.n) : "");
+  sel.select("title").text(d => `${d.n}: ${d.sun.toFixed(1)} h sun, ${d.day.toFixed(1)} h daylight, ${Math.round(d.temp)}°C`);
+  sel.filter(d => d.ok).raise(); sel.filter(d => d.i === S.sel || d.i === home).raise();
+}
+
+function legend() {
+  const s = scales[S.colorBy];
+  $("legend").innerHTML = `<span>Sunshine zones, hours of sun per day on your dates</span>
+    <div class="sw">${ZONES.map((t, i) => `<i style="background:var(--z${i})"></i>`).join("")}
+      ${ZONES.map((t, i) => `<span>${i === ZONES.length - 1 ? t + "+" : t + "–" + ZONES[i + 1]}</span>`).join("")}</div>
+    ${S.colorBy === "sun" ? "" : `<span class="dots">Dots: ${s.lab.toLowerCase()}
+      <span class="bar" style="background:linear-gradient(90deg,${RAMP.join(",")})"></span>
+      ${S.colorBy === "cost" ? "€" + s.ticks[0] + " → €" + s.ticks[3] : s.ticks[0] + s.unit + " → " + s.ticks[3] + s.unit}</span>`}`;
+}
+
+// ---- Detail card
+function monthChart(c) {
+  const w = 280, h = 46, bw = w / 12, max = 12;
+  const trip = tripDays(); const inTrip = new Set(trip.days.map(d => d.getUTCMonth()));
+  return `<svg viewBox="0 0 ${w} ${h + 14}" aria-label="Sunshine hours per day by month">
+    ${[4, 8].map(v => `<line x1="0" x2="${w}" y1="${h - v/max*h}" y2="${h - v/max*h}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${w}" y="${h - v/max*h - 2}" text-anchor="end">${v}h</text>`).join("")}
+    ${c.m.map((m, i) => `<rect x="${(i*bw + bw*0.3).toFixed(1)}" y="${h - m[0]/max*h}" width="${(bw*0.4).toFixed(1)}" height="${m[0]/max*h}" rx="2" fill="${inTrip.has(i) ? "var(--sun)" : "var(--land)"}"/>
+      <text x="${i*bw + bw/2}" y="${h + 11}" text-anchor="middle">${MONTHS[i]}</text>`).join("")}
+  </svg>`;
+}
+function select(id) {
+  S.sel = id; const c = S.rows.find(r => r.i === id); const box = $("detail");
+  if (!c) { box.hidden = true; render(false); return; }
+  const home = $("home").value, dep = $("dep").value, ret = $("ret").value;
+  const gf = `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${home} to ${c.i} on ${dep} through ${ret}`)}`;
+  const sk = `https://www.skyscanner.net/transport/flights/${home.toLowerCase()}/${c.i.toLowerCase()}/${dep.slice(2).replace(/-/g, "")}/${ret.slice(2).replace(/-/g, "")}/`;
+  const lo = Math.round(c.eur*0.75/5)*5, hi = Math.round(c.eur*1.3/5)*5;
+  box.innerHTML = `<button class="close" aria-label="Close">×</button>
+    <div><h3>${c.n}</h3><div class="sub">${c.c} · ${c.i} · ${Math.round(c.d).toLocaleString()} km from ${home}</div></div>
+    <div class="kv">
+      <div><span>Sunshine</span><b>${c.sun.toFixed(1)} h/day</b></div>
+      <div><span>Daylight</span><b>${c.day.toFixed(1)} h</b></div>
+      <div><span>Daytime high</span><b>${Math.round(c.temp)}°C</b></div>
+      <div><span>Rain</span><b>${Math.round(c.rainDays)} of ${c.nd} days</b></div>
+      <div><span>Fare estimate</span><b>${c.eur ? `€${lo}–${hi}` : "—"}</b></div>
+      <div><span>Flight time</span><b>${c.hrs ? `~${c.hrs.toFixed(1)} h` : "—"}</b></div>
+    </div>
+    ${c.daily.length ? `<div class="fchead"><span>Daily forecast</span>${c.nf < c.nd ? `<small>${c.nd - c.nf} later days use typical weather</small>` : ""}</div>
+    <div class="fcst">${c.daily.map(x => `<div class="${codeIcon(x.code)}" title="${x.mm} mm rain, ${x.sun} h sun">
+      <span>${x.d.toLocaleDateString("en-GB", {weekday: "short", timeZone: "UTC"})} ${x.d.getUTCDate()}</span>${ICON[codeIcon(x.code)]}<b>${Math.round(x.t)}°</b><span>☀ ${Math.round(x.sun)}h</span></div>`).join("")}</div>`
+      : `<div class="fchead"><span>Typical weather</span><small>Your dates are past the 16-day forecast</small></div>`}
+    <div class="fchead"><span>Typical sun by month</span><small>2022–2025 average</small></div>
+    <div class="months">${monthChart(c)}</div>
+    <div class="links"><a href="${gf}" target="_blank" rel="noopener">Google Flights ↗</a><a href="${sk}" target="_blank" rel="noopener">Skyscanner ↗</a></div>`;
+  box.querySelector(".close").onclick = () => select(null);
+  box.hidden = false; render(false);
+}
+
+// ---- Main render
+function readFilters() {
+  const f = {minDay: +$("minDay").value, minSun: +$("minSun").value, minTemp: +$("minTemp").value,
+    maxRain: +$("maxRain").value, maxCost: +$("maxCost").value, maxTime: +$("maxTime").value};
+  $("o-day").textContent = f.minDay + " h"; $("o-sun").textContent = f.minSun + " h/day";
+  $("o-temp").textContent = f.minTemp + " °C"; $("o-rain").textContent = f.maxRain >= 100 ? "any" : f.maxRain + "% of days";
+  $("o-cost").textContent = f.maxCost >= 1500 ? "any" : "€" + f.maxCost; $("o-time").textContent = f.maxTime >= 16 ? "any" : f.maxTime + " h";
+  if (f.maxCost >= 1500) f.maxCost = Infinity; if (f.maxTime >= 16) f.maxTime = Infinity;
+  return f;
+}
+function render(recompute = true) {
+  const trip = tripDays(), f = readFilters();
+  const home = CITIES.find(c => c.i === $("home").value);
+  if (recompute) {
+    S.rows = compute(home, trip);
+    computeZones(); drawZones();
+  }
+  const rows = S.rows; rows.forEach(r => r.ok = passes(r, f));
+  const key = $("sort").value;
+  const sorters = {sun: (a, b) => b.sun - a.sun || a.eur - b.eur, cost: (a, b) => a.eur - b.eur, time: (a, b) => a.hrs - b.hrs,
+    temp: (a, b) => b.temp - a.temp, value: (a, b) => (b.sun / b.eur) - (a.sun / a.eur)};
+  const ok = rows.filter(r => r.ok).sort(sorters[key]);
+  rows.forEach(r => r.rank = 99); ok.forEach((r, i) => r.rank = i);
+  $("count").textContent = `${ok.length} of ${rows.filter(r => r.r !== "Home").length}`;
+  $("results").innerHTML = ok.length ? ok.map(r => {
+    const [, place, area] = r.n.match(/^(.*?)(?: \((.*)\))?$/), w = sky(r);
+    const src = r.nf === r.nd ? "forecast" : r.nf ? `forecast for ${r.nf} of ${r.nd} days` : "typical weather";
+    return `<li><button data-i="${r.i}" class="${r.i === S.sel ? "sel" : ""}" title="${r.sun.toFixed(1)} h sun a day, ${r.day.toFixed(1)} h daylight, ${rainText(r)} (${src})">
+      <span class="pl"><span class="nm">${place}</span><span class="meta">${area ? area + ", " : ""}${r.c} · ${r.hrs.toFixed(1)} h</span></span>
+      <span class="spark"><b>${r.sun.toFixed(1)}</b>${spark(r)}</span>
+      <span class="tmp ${w.k}">${ICON[w.k]}${Math.round(r.temp)}°</span>
+      <span class="fare">€${r.eur}</span>
+    </button></li>`; }).join("")
+    : `<li class="empty">No place passes every filter for these dates. Try lowering the sunshine or warmth minimum, or allow a longer flight.</li>`;
+  const h = rows.find(r => r.i === home.i), best = ok[0];
+  $("compare").innerHTML = fcLine() + `${h.n}, ${fmtShort(trip.a)}–${fmtShort(trip.b)}: <b>${h.sun.toFixed(1)} h</b> sun a day, ${h.day.toFixed(1)} h daylight.` +
+    (best ? ` Sunniest match: <b>${short(best.n)}</b> with <b>${best.sun.toFixed(1)} h</b>, <span class="up">${(best.sun / Math.max(h.sun, 0.1)).toFixed(1)}× more</span>.` : "");
+  drawCities(); legend();
+}
+function fcLine() {
+  const any = Object.values(FORECAST.d)[0]; if (!any) return "";
+  const end = new Date(Date.parse(any.s + "T00:00Z") + (any.d.length - 1) * 864e5), asOf = new Date(FORECAST.asOf);
+  return `<span class="fcnote">Forecast updated ${fmtShort(asOf)}, covers up to ${fmtShort(end)}. Later days show typical weather.</span> `;
+}
+const fmtShort = d => d.toLocaleDateString("en-GB", {day: "numeric", month: "short", timeZone: "UTC"});
+
+["minDay", "minSun", "minTemp", "maxRain", "maxCost", "maxTime", "sort"].forEach(id => $(id).addEventListener("input", () => render(false)));
+["dep", "ret", "home"].forEach(id => $(id).addEventListener("change", () => {
+  if (id === "home") try { localStorage.setItem("sf-home", $("home").value); } catch (e) {}
+  render(); if (S.sel) select(S.sel);
+  if (id === "home") zoomNearby(true);
+}));
+$("colorBy").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
+  S.colorBy = b.dataset.k; [...$("colorBy").children].forEach(x => x.setAttribute("aria-pressed", x === b)); render(false); });
+$("results").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (!b) return; if (isMobile()) setSheet(""); select(b.dataset.i); });
+function setSheet(s) {
+  $("app").dataset.sheet = s;
+  document.querySelectorAll(".mobilebar button").forEach(x => x.setAttribute("aria-pressed", x.dataset.sheet === s));
+  if (s) $("detail").hidden = true;
+}
+document.querySelector(".mobilebar").addEventListener("click", e => { const b = e.target.closest("button");
+  if (b) setSheet($("app").dataset.sheet === b.dataset.sheet ? "" : b.dataset.sheet); });
+document.querySelectorAll(".panelhead").forEach(b => b.addEventListener("click", () => {
+  if (isMobile()) { setSheet(""); return; }
+  const closed = b.parentElement.classList.toggle("collapsed"); b.setAttribute("aria-expanded", !closed); layout();
+}));
+new ResizeObserver(() => layout()).observe($("map"));
+render(); layout();
+</script>
