@@ -116,37 +116,45 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 
 /* Map */
 .mapwrap { position: absolute; inset: 0; background: var(--sea); overflow: hidden; }
-#base, #amap, #sunfx, #map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#base, #amap, #sunfx, #map, #route, #pins { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 #amap { display: none; } #sunfx { pointer-events: none; }
 #map { touch-action: none; cursor: grab; }
 /* Apple Maps underneath: it takes the gestures, the markers on top stay clickable */
 .mapwrap.apple #amap { display: block; } .mapwrap.apple #base { display: none; }
-.mapwrap.apple #map { pointer-events: none; } .mapwrap.apple #map .city { pointer-events: auto; }
+.mapwrap.apple #map { pointer-events: none; }
 #base .land { fill: var(--land); stroke: none; }
 #base .outline { fill: none; stroke: var(--halo); stroke-opacity: .8; stroke-width: 0.6; vector-effect: non-scaling-stroke; pointer-events: none; }
 #base .grat { fill: none; stroke: var(--ink); stroke-opacity: .04; stroke-width: 0.5; vector-effect: non-scaling-stroke; }
-#map .city { cursor: pointer; }
-#map .city .hit { fill: transparent; stroke: none; }
-#map .city .dot { fill: var(--sign); stroke: #fff; stroke-width: 1.5; }
-#map .city .core { fill: var(--yellow); pointer-events: none; }
-#map .city.out .dot { fill: var(--faint); stroke: none; opacity: .6; }
-#map .city.sel .dot { stroke: var(--yellow); stroke-width: 2; }
-/* Pins: small airport signs with the place, its sky, hours of sun and temperature */
-#map .pin { color: var(--sign-muted); opacity: 0; scale: .82; pointer-events: none; transform-box: fill-box; transform-origin: 50% 100%; transition: opacity .2s ease, scale .26s cubic-bezier(.2,.9,.3,1.2); }
-#map .pin.dn { transform-origin: 50% 0; }
-#map .pin.on { opacity: 1; scale: 1; pointer-events: auto; }
-#map .pin rect, #map .pin .tip { fill: var(--sign); }
-#map .pin rect { stroke: rgba(255,255,255,.16); stroke-width: 1; }
-#map .city.sel .pin rect, #map .city.hot .pin rect { stroke: var(--yellow); stroke-width: 1.5; }
-#map .pin text { pointer-events: none; }
-#map .pin .nm { font: 600 11.5px var(--sans); fill: var(--sign-ink); }
-#map .pin .st { font: 500 10.5px var(--mono); fill: var(--sign-muted); }
-#map .pin .st .h { fill: var(--yellow); }
-#map .pin .ic.clear { color: var(--yellow); }
-#map .homemk rect { fill: var(--sign); }
-#map .homemk path { fill: var(--yellow); }
-#map .homemk text { font: 600 11px var(--mono); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round; }
-#map .route { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 3 5; stroke-linecap: round; opacity: .7; pointer-events: none; animation: march .9s linear infinite; }
+/* Markers are small HTML layers on top of the map. Moving the map only moves them (a transform each), nothing is repainted */
+#pins { pointer-events: none; overflow: hidden; }
+#pins .city { all: unset; position: absolute; left: 0; top: 0; width: 0; height: 0; will-change: transform; cursor: pointer; pointer-events: auto; --r: 5px; --c: 2px; }
+#pins .city::before { content: ""; position: absolute; left: -12px; top: -12px; width: 24px; height: 24px; border-radius: 50%; }
+#pins .dot { position: absolute; left: calc(var(--r) * -1); top: calc(var(--r) * -1); width: calc(var(--r) * 2); height: calc(var(--r) * 2); box-sizing: border-box; border-radius: 50%; background: var(--sign); box-shadow: 0 0 0 1.5px #fff; display: grid; place-items: center; }
+/* The dot is a little sun gauge: the yellow core grows with the hours of sun */
+#pins .core { width: calc(var(--c) * 2); height: calc(var(--c) * 2); border-radius: 50%; background: var(--yellow); }
+#pins .city.out .dot { background: var(--faint); box-shadow: none; opacity: .6; }
+#pins .city.sel .dot, #pins .city.hot .dot { box-shadow: 0 0 0 2px var(--yellow); }
+/* Pins: small airport signs with the place, its sky, hours of sun and temperature; the tip sits on the spot */
+#pins .pin { position: absolute; left: var(--dx); bottom: 8px; height: 36px; box-sizing: border-box; padding: 0 9px; border-radius: 9px; background: var(--sign); color: var(--sign-muted);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 4px 12px rgba(0,0,0,.28); display: flex; flex-direction: column; justify-content: center; gap: 2px; white-space: nowrap; text-align: left;
+  opacity: 0; scale: .82; pointer-events: none; transform-origin: calc(var(--dx) * -1) calc(100% + 7px); transition: opacity .16s var(--ease), scale .22s cubic-bezier(.2,.9,.3,1.2); }
+#pins .pin.dn { bottom: auto; top: 8px; transform-origin: calc(var(--dx) * -1) -7px; }
+#pins .pin.on { opacity: 1; scale: 1; pointer-events: auto; }
+#pins .pin::after { content: ""; position: absolute; left: calc(var(--dx) * -1 - 6px); top: 100%; border: 6px solid transparent; border-top: 7px solid var(--sign); border-bottom: 0; }
+#pins .pin.dn::after { top: auto; bottom: 100%; border-top: 0; border-bottom: 7px solid var(--sign); }
+#pins .city.sel .pin, #pins .city.hot .pin { box-shadow: 0 0 0 1.5px var(--yellow), 0 4px 12px rgba(0,0,0,.28); }
+#pins .pin .nm { font: 600 11.5px/1.15 var(--sans); color: var(--sign-ink); }
+#pins .pin .st { font: 500 10.5px/1.15 var(--mono); display: flex; align-items: center; gap: 4px; }
+#pins .pin .st svg { width: 13px; height: 13px; flex: none; }
+#pins .pin .st .h { color: var(--yellow); font-weight: 500; }
+#pins .pin .ic { display: grid; } #pins .pin .ic.clear { color: var(--yellow); }
+#pins .homemk { position: absolute; left: 0; top: 0; will-change: transform; display: flex; align-items: center; gap: 5px; }
+#pins .homemk i { width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 4px; background: var(--sign); color: var(--yellow); display: grid; place-items: center; }
+#pins .homemk svg { width: 12px; height: 12px; }
+#pins .homemk b { margin-top: -9px; font: 600 11px/1 var(--mono); color: var(--ink); text-shadow: 0 0 2px var(--halo), 0 0 2px var(--halo), 0 0 3px var(--halo), 0 0 4px var(--halo); }
+/* The dashed flight path marches from home to the destination */
+#route { pointer-events: none; overflow: visible; transform-origin: 0 0; will-change: transform; }
+#route .route { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 3 5; stroke-linecap: round; opacity: .7; vector-effect: non-scaling-stroke; animation: march .9s linear infinite; }
 @keyframes march { to { stroke-dashoffset: -8; } }
 .legend { position: absolute; z-index: 1; left: var(--gut-l); top: var(--top); background: var(--sign); color: var(--sign-muted); border-radius: 12px; padding: 9px 12px; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
 .legend .bar { height: 6px; width: 180px; max-width: 100%; border-radius: 3px; }
@@ -238,7 +246,6 @@ details.about { padding: 10px 16px 14px; }
 #results li button:hover, #deps li button.dr:hover { background: var(--sign-2); }
 #results li button.sel { background: color-mix(in srgb, var(--yellow) 14%, transparent); }
 #results li button.hot, #deps li .dr.hot { background: var(--sign-2); }
-#map .city.hot .dot { stroke: var(--yellow); stroke-width: 2; }
 #results li button:focus-visible, #deps li button.dr:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
 .pl { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .pl .nm { font: 500 13.5px/1.25 var(--sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -451,6 +458,8 @@ details.about { padding: 10px 16px 14px; }
     <div id="amap"></div>
     <canvas id="sunfx" aria-hidden="true"></canvas>
     <svg id="map" role="img" aria-label="World map of destinations coloured by sunshine"></svg>
+    <svg id="route" aria-hidden="true"></svg>
+    <div id="pins"></div>
     <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show nearest destinations" title="Nearest destinations"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
     <div class="legend" id="legend"></div>
     <div class="detail" id="detail" role="dialog" aria-label="Destination details" hidden></div>
@@ -734,11 +743,13 @@ const proj = d3.geoMercator(), path = d3.geoPath(proj);
 const land = topojson.feature(WORLD, WORLD.objects.countries);
 const borders = topojson.mesh(WORLD, WORLD.objects.countries);
 const gLand = g.append("g"), gGrat = g.append("g");
-// Cities and the home marker live outside the zoomed group so they stay the same size at every zoom level
-const gRoute = svg.append("g"), gCity = svg.append("g"), gHome = svg.append("g").attr("class", "homemk").attr("aria-hidden", "true");
-gHome.append("rect").attr("x", -9).attr("y", -9).attr("width", 18).attr("height", 18).attr("rx", 4);
-gHome.append("path").attr("transform", "translate(-6.5,-6.5) scale(.82)").attr("d", "M14.6 8c0-.6-.5-1.05-1.1-1.05H10.2L7.1 2H5.6l1.6 4.95H4.1L3 5.4H2l.55 2.6L2 10.6h1l1.1-1.55h3.1L5.6 14h1.5l3.1-4.95h3.3c.6 0 1.1-.45 1.1-1.05z");
-gHome.append("text").attr("x", 13).attr("dy", "0.35em");
+// Markers and the flight path live outside the map so they keep their size at every zoom level
+const pinsEl = $("pins"), CITY = new Map(), routePath = d3.select("#route").append("path").attr("class", "route");
+const homeEl = document.createElement("div"); homeEl.className = "homemk"; homeEl.setAttribute("aria-hidden", "true");
+homeEl.innerHTML = `<i>${ICON.plane}</i><b></b>`; pinsEl.appendChild(homeEl);
+pinsEl.addEventListener("click", e => { const b = e.target.closest(".city"); if (b) select(b.dataset.i); });
+pinsEl.addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const b = e.target.closest(".city"); setHot(b ? b.dataset.i : null); });
+pinsEl.addEventListener("pointerleave", () => setHot(null));
 let W = 0, H = 0, T = d3.zoomIdentity, FREE = null, AMAP = null;
 const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
 // Web Mercator on a unit square: x 0..1 west to east, y 0..1 north to south
@@ -1036,44 +1047,52 @@ function drawCities() {
       if (lit(d) || !boxes.some(o => o.own !== d.i && b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h)) { boxes.push(b); pin.set(d.i, {w, up, hrs, tmp, dx: Math.round(b.x - x)}); break; }
     }
   }
-  const sel = gCity.selectAll("g.city").data(rows, d => d.i).join(enter => {
-    const e = enter.append("g").attr("class", "city");
-    e.append("circle").attr("class", "hit").attr("r", 12);
-    e.append("circle").attr("class", "dot"); e.append("circle").attr("class", "core");
-    const pn = e.append("g").attr("class", "pin");
-    pn.append("path").attr("class", "tip"); pn.append("rect").attr("height", PH).attr("rx", 9);
-    pn.append("text").attr("class", "nm").attr("x", 9).attr("y", 15); pn.append("g").attr("class", "ic");
-    const st = pn.append("text").attr("class", "st").attr("x", 26).attr("y", 28.5); st.append("tspan").attr("class", "h"); st.append("tspan").attr("class", "t").attr("dx", 5);
-    e.on("click", (ev, d) => select(d.i)).on("mouseenter", (ev, d) => setHot(d.i)).on("mouseleave", () => setHot(null));
-    e.append("title");
-    return e;
-  });
-  sel.attr("transform", d => `translate(${pos.get(d.i)})`)
-    .classed("out", d => !d.ok && !lit(d)).classed("sel", d => d.i === S.sel).classed("hot", d => d.i === S.hot);
-  // The dot is a little sun gauge: the yellow core grows with the hours of sun
   const rad = d => d.i === S.sel ? 7.5 : d.i === S.hot ? 7 : d.ok ? (d.rank < 10 ? 6 : 5) : 2.5;
-  sel.select(".dot").attr("r", rad);
-  sel.select(".core").attr("r", d => d.ok || lit(d) ? rad(d) * (0.28 + 0.5 * Math.min(1, d.sun / 11)) : 0)
-    .style("fill", d => S.colorBy === "sun" ? null : colorFor(S.colorBy, d[S.colorBy === "cost" ? "eur" : S.colorBy]));
-  sel.select(".pin").each(function(d) {
-    const q = pin.get(d.i), k = sky(d).k, sig = q ? [q.w, q.up, q.hrs, q.tmp, k, q.dx].join() : "";
-    if (this.__sig === sig) return; this.__sig = sig;
-    const pn = d3.select(this).classed("on", !!q); if (!q) return; // a pin that goes away keeps its last face while it fades
-    pn.classed("dn", !q.up);
-    pn.attr("transform", `translate(${q.dx},${q.up ? -8 - PH : 8})`);
-    pn.select("rect").attr("width", q.w);
-    pn.select(".tip").attr("d", q.up ? `M${-q.dx - 5.5},${PH - 1}L${-q.dx},${PH + 6}L${-q.dx + 5.5},${PH - 1}Z` : `M${-q.dx - 5.5},1L${-q.dx},-6L${-q.dx + 5.5},1Z`);
-    pn.select(".nm").text(short(d.n));
-    pn.select(".ic").attr("class", "ic " + k).html(ICON[k].replace("<svg ", '<svg x="8" y="18" width="13" height="13" '));
-    pn.select(".h").text(q.hrs); pn.select(".t").text(q.tmp);
-  });
-  sel.select("title").text(d => `${d.n}: ${d.sun.toFixed(1)} h sun, ${d.day.toFixed(1)} h daylight, ${Math.round(d.temp)}°C`);
-  sel.filter(d => d.ok).raise(); sel.filter(d => pin.has(d.i)).raise(); sel.filter(lit).raise();
-  gHome.attr("transform", `translate(${hp})`).select("text").text(S.home.i);
-  // Dashed flight path to the selected destination
+  const seen = new Set();
+  for (const d of rows) {
+    seen.add(d.i);
+    let o = CITY.get(d.i);
+    if (!o) { const el = document.createElement("button"); el.type = "button"; el.className = "city"; el.dataset.i = d.i; el.tabIndex = -1;
+      el.innerHTML = '<i class="dot"><i class="core"></i></i><span class="pin"><span class="nm"></span><span class="st"><span class="ic"></span><span class="h"></span><span class="t"></span></span></span>';
+      pinsEl.appendChild(el); o = {el, pin: el.querySelector(".pin")}; CITY.set(d.i, o); }
+    const [x, y] = pos.get(d.i);
+    o.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+    // Everything but the position only changes now and then, so it is written only when it does
+    const on = d.ok || lit(d), r = rad(d), q = pin.get(d.i), k = sky(d).k;
+    const sig = [on, d.i === S.sel, d.i === S.hot, r, d.sun.toFixed(1), !!q, Math.round(d.temp)].join();
+    if (sig !== o.sig) { o.sig = sig;
+      o.el.className = "city" + (on ? "" : " out") + (d.i === S.sel ? " sel" : "") + (d.i === S.hot ? " hot" : "");
+      o.el.style.setProperty("--r", r + "px"); o.el.style.setProperty("--c", (on ? r * (0.28 + 0.5 * Math.min(1, d.sun / 11)) : 0).toFixed(1) + "px");
+      o.el.style.zIndex = lit(d) ? 3 : q ? 2 : d.ok ? 1 : 0;
+      o.el.title = `${d.n}: ${d.sun.toFixed(1)} h sun, ${d.day.toFixed(1)} h daylight, ${Math.round(d.temp)}°C`; }
+    const psig = q ? [q.w, q.up, q.hrs, q.tmp, k, q.dx].join() : "";
+    if (psig !== o.psig) { o.psig = psig; o.pin.classList.toggle("on", !!q);
+      if (q) { // a pin that goes away keeps its last face while it fades
+        o.pin.classList.toggle("dn", !q.up); o.pin.style.width = q.w + "px"; o.pin.style.setProperty("--dx", q.dx + "px");
+        o.pin.querySelector(".nm").textContent = short(d.n);
+        const ic = o.pin.querySelector(".ic"); ic.className = "ic " + k; ic.innerHTML = ICON[k];
+        o.pin.querySelector(".h").textContent = q.hrs; o.pin.querySelector(".t").textContent = q.tmp; } }
+  }
+  for (const [id, o] of CITY) if (!seen.has(id)) { o.el.remove(); CITY.delete(id); }
+  homeEl.style.transform = `translate3d(${hp[0].toFixed(1)}px,${hp[1].toFixed(1)}px,0)`; homeEl.lastChild.textContent = S.home.i;
+  drawRoute();
+}
+// The flight path is drawn once for a view and then only moved and scaled with the map; it is redrawn sharp when the
+// map has zoomed a fair bit, and again once it comes to rest
+let RREF = null, RT = 0;
+function drawRoute(force) {
   const c = rowFor(S.sel);
-  const line = c ? d3.range(0, 1.0001, 1/48).map(t => screen(...d3.geoInterpolate([S.home.lo, S.home.la], [c.lo, c.la])(t).reverse())) : [];
-  gRoute.selectAll("path").data(c ? [line] : []).join("path").attr("class", "route").attr("d", d3.line());
+  if (!c || !S.home) { if (RREF) { routePath.attr("d", null); RREF = null; } return; }
+  const k = RREF ? MV.s / RREF.s : 0, same = RREF && RREF.to === c.i && RREF.from === S.home.i && RREF.W === W;
+  if (!force && same && k > 0.8 && k < 1.25) {
+    const still = k === 1 && MV.x === RREF.x && MV.y === RREF.y;
+    $("route").style.transform = still ? "" : `translate(${(MV.x - k * RREF.x).toFixed(2)}px,${(MV.y - k * RREF.y).toFixed(2)}px) scale(${k.toFixed(5)})`;
+    if (!still) { clearTimeout(RT); RT = setTimeout(() => drawRoute(true), 140); }
+    return;
+  }
+  const line = d3.range(0, 1.0001, 1/48).map(t => screen(...d3.geoInterpolate([S.home.lo, S.home.la], [c.lo, c.la])(t).reverse()));
+  routePath.attr("d", d3.line()(line)); $("route").style.transform = "";
+  RREF = {...MV, to: c.i, from: S.home.i, W};
 }
 
 function legend() {
