@@ -133,7 +133,9 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 #map .city.out .dot { fill: var(--faint); stroke: none; opacity: .6; }
 #map .city.sel .dot { stroke: var(--yellow); stroke-width: 2; }
 /* Pins: small airport signs with the place, its sky, hours of sun and temperature */
-#map .pin { color: var(--sign-muted); }
+#map .pin { color: var(--sign-muted); opacity: 0; scale: .82; pointer-events: none; transform-box: fill-box; transform-origin: 50% 100%; transition: opacity .2s ease, scale .26s cubic-bezier(.2,.9,.3,1.2); }
+#map .pin.dn { transform-origin: 50% 0; }
+#map .pin.on { opacity: 1; scale: 1; pointer-events: auto; }
 #map .pin rect, #map .pin .tip { fill: var(--sign); }
 #map .pin rect { stroke: rgba(255,255,255,.16); stroke-width: 1; }
 #map .city.sel .pin rect, #map .city.hot .pin rect { stroke: var(--yellow); stroke-width: 1.5; }
@@ -145,7 +147,8 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 #map .homemk rect { fill: var(--sign); }
 #map .homemk path { fill: var(--yellow); }
 #map .homemk text { font: 600 11px var(--mono); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round; }
-#map .route { fill: none; stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 3 4; opacity: .55; pointer-events: none; }
+#map .route { fill: none; stroke: var(--ink); stroke-width: 1.4; stroke-dasharray: 3 5; stroke-linecap: round; opacity: .7; pointer-events: none; animation: march .9s linear infinite; }
+@keyframes march { to { stroke-dashoffset: -8; } }
 .legend { position: absolute; z-index: 1; left: var(--gut-l); top: var(--top); background: var(--sign); color: var(--sign-muted); border-radius: 12px; padding: 9px 12px; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
 .legend .bar { height: 6px; width: 180px; max-width: 100%; border-radius: 3px; }
 .legend .sw { display: grid; grid-template-columns: repeat(6, 36px); gap: 2px; }
@@ -824,24 +827,39 @@ function layout() {
   // The outline map was refitted to the new size: keep looking at the same place at the same scale
   if (was) { const s = proj.scale(), [tx, ty] = proj.translate(), k = Math.max(1, Math.min(12, was.v.s / (2*Math.PI * s)));
     svg.call(zoom.transform, d3.zoomIdentity.translate(was.v.x + (W - was.W) / 2 - k * (tx - Math.PI*s), was.v.y + (H - was.H) / 2 - k * (ty - Math.PI*s)).scale(k)); }
+  if (AMAP) { const v = mercView(); AMAP.padding = new mapkit.Padding(FREE.y0, Math.max(0, W - FREE.x1), Math.max(0, H - FREE.y1), FREE.x0); if (v.s > 64) appleSet(v); }
   MV = mercView(); FX.resize(); drawCities();
   if (!S.zoomed) { S.zoomed = true; zoomNearby(false); }
+}
+// Apple's map is driven as a Mercator view too: v says where the unit square sits on screen (as MV does)
+let CAM = 0;
+function appleSet(v) {
+  const p = AMAP.padding, x0 = p.left, y0 = p.top, w = W - p.left - p.right, h = H - p.top - p.bottom;
+  AMAP.visibleMapRect = new mapkit.MapRect((x0 - v.x) / v.s, (y0 - v.y) / v.s, w / v.s, h / v.s);
+}
+// Glide from the current view to v: zooms out a little on the way when the two are far apart, eases in and out
+function appleGo(v, ms) {
+  cancelAnimationFrame(CAM); CAM = 0;
+  v = {...v, s: Math.max(W * 0.8, v.s)};
+  if (!ms || matchMedia("(prefers-reduced-motion: reduce)").matches) return appleSet(v);
+  const a = mercView(), i = d3.interpolateZoom([(W/2 - a.x) / a.s, (H/2 - a.y) / a.s, W / a.s], [(W/2 - v.x) / v.s, (H/2 - v.y) / v.s, W / v.s]);
+  const dur = Math.max(ms, Math.min(1500, i.duration * 0.85)), t0 = performance.now();
+  const tick = now => { const t = Math.min(1, (now - t0) / dur), [cx, cy, w] = i(d3.easeCubicInOut(t)), k = W / w;
+    appleSet({s: k, x: W/2 - cx * k, y: H/2 - cy * k}); CAM = t < 1 ? requestAnimationFrame(tick) : 0; };
+  CAM = requestAnimationFrame(tick);
 }
 // Fit places ({la, lo}) into a box of the screen
 function frame(places, box, ms) {
   if (AMAP) {
-    const [la0, la1] = d3.extent(places, p => p.la), [lo0, lo1] = d3.extent(places, p => p.lo);
-    AMAP.padding = new mapkit.Padding(box.y0, Math.max(0, W - box.x1), Math.max(0, H - box.y1), box.x0);
-    AMAP.setRegionAnimated(new mapkit.CoordinateRegion(
-      new mapkit.Coordinate(mercLat((mercY(la0) + mercY(la1)) / 2), (lo0 + lo1) / 2),
-      new mapkit.CoordinateSpan(Math.max(4, la1 - la0), Math.max(6, lo1 - lo0))), !!ms);
-    return;
+    const [xa, xb] = d3.extent(places, p => mercX(p.lo)), [ya, yb] = d3.extent(places, p => mercY(p.la));
+    const k = Math.min(W * 45, (box.x1 - box.x0) / (xb - xa || 1e-9), (box.y1 - box.y0) / (yb - ya || 1e-9));
+    return appleGo({s: k, x: (box.x0 + box.x1) / 2 - k * (xa + xb) / 2, y: (box.y0 + box.y1) / 2 - k * (ya + yb) / 2}, ms);
   }
   const pts = places.map(c => proj([c.lo, c.la]));
   const [xa, xb] = d3.extent(pts, p => p[0]), [ya, yb] = d3.extent(pts, p => p[1]);
   const k = Math.max(1, Math.min(12, (box.x1 - box.x0) / (xb - xa || 1), (box.y1 - box.y0) / (yb - ya || 1)));
   const t = d3.zoomIdentity.translate((box.x0 + box.x1)/2 - k*(xa + xb)/2, (box.y0 + box.y1)/2 - k*(ya + yb)/2).scale(k);
-  (ms ? svg.transition().duration(ms) : svg).call(zoom.transform, t);
+  (ms ? svg.transition().duration(ms).ease(d3.easeCubicInOut) : svg).call(zoom.transform, t);
 }
 // Frame home and its nearest destinations inside the open area
 function zoomNearby(animate) {
@@ -854,15 +872,14 @@ const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => { T = e.transform; g
 svg.call(zoom).on("dblclick.zoom", null);
 function zoomBy(f) {
   if (!AMAP) return svg.transition().duration(250).call(zoom.scaleBy, f);
-  const r = AMAP.region;
-  AMAP.setRegionAnimated(new mapkit.CoordinateRegion(r.center, new mapkit.CoordinateSpan(Math.min(150, r.span.latitudeDelta / f), Math.min(360, r.span.longitudeDelta / f))), true);
+  const a = mercView(); appleGo({s: a.s * f, x: W/2 - (W/2 - a.x) * f, y: H/2 - (H/2 - a.y) * f}, 350);
 }
 $("zin").onclick = () => zoomBy(1.6);
 $("zout").onclick = () => zoomBy(1/1.6);
 $("znear").onclick = () => zoomNearby(true);
 $("zworld").onclick = () => {
   if (!AMAP) return svg.transition().duration(650).call(zoom.transform, d3.zoomIdentity);
-  AMAP.setRegionAnimated(new mapkit.CoordinateRegion(new mapkit.Coordinate(22, S.home ? S.home.lo : 10), new mapkit.CoordinateSpan(120, 300)), true);
+  const k = W * 1.15; appleGo({s: k, x: W/2 - k * mercX(S.home ? S.home.lo : 10), y: (FREE.y0 + FREE.y1) / 2 - k * mercY(25)}, 700);
 };
 
 // ---- Sunshine field: the stations blended onto a 256 × 128 grid of the globe (red = hours of sun, alpha = how
@@ -1022,10 +1039,11 @@ function loadApple() {
       showsMapTypeControl: false, showsUserLocationControl: false, showsPointsOfInterest: false});
     try { map.cameraZoomRange = new mapkit.CameraZoomRange(250000, 3e7); } catch (e) {}
     matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { map.colorScheme = scheme(); });
+    for (const ev of ["pointerdown", "wheel", "touchstart"]) $("amap").addEventListener(ev, () => { cancelAnimationFrame(CAM); CAM = 0; }, {capture: true, passive: true});
     AMAP = map; $("mapwrap").classList.add("apple");
     layout();
     const c = rowFor(S.sel);
-    if (c && isMobile() && !$("detail").hidden) fitRoute(c, $("detail").getBoundingClientRect().top - svg.node().getBoundingClientRect().top); else zoomNearby(false);
+    if (c && !$("detail").hidden) fitRoute(c, $("detail").getBoundingClientRect().top - svg.node().getBoundingClientRect().top); else zoomNearby(false);
   }).catch(() => {});
 }
 
@@ -1082,7 +1100,8 @@ function drawCities() {
   sel.select(".pin").each(function(d) {
     const q = pin.get(d.i), k = sky(d).k, sig = q ? [q.w, q.up, q.hrs, q.tmp, k, q.dx].join() : "";
     if (this.__sig === sig) return; this.__sig = sig;
-    const pn = d3.select(this).style("display", q ? null : "none"); if (!q) return;
+    const pn = d3.select(this).classed("on", !!q); if (!q) return; // a pin that goes away keeps its last face while it fades
+    pn.classed("dn", !q.up);
     pn.attr("transform", `translate(${q.dx},${q.up ? -8 - PH : 8})`);
     pn.select("rect").attr("width", q.w);
     pn.select(".tip").attr("d", q.up ? `M${-q.dx - 5.5},${PH - 1}L${-q.dx},${PH + 6}L${-q.dx + 5.5},${PH - 1}Z` : `M${-q.dx - 5.5},1L${-q.dx},-6L${-q.dx + 5.5},1Z`);
@@ -1178,7 +1197,6 @@ function stackFlip(box, front, was, dir) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { if (was) was.remove(); return; }
   const now = performance.now(), quick = now - LASTFLIP < 420; LASTFLIP = now;
   const ms = quick ? 260 : 440, r = box.getBoundingClientRect();
-  FX.rest(ms + 80);
   // Far enough down that the whole ticket clears the bottom of the window
   const off = innerHeight - r.top + 40, away = `translate(${dir > 0 ? 18 : -14}px, ${off}px) rotate(${dir > 0 ? 4 : -3}deg)`;
   const settle = "cubic-bezier(.2,.85,.25,1)", run = (el, kf, o) => FLIPS.push(el.animate(kf, {duration: ms, easing: settle, fill: "backwards", ...o}));
@@ -1258,7 +1276,15 @@ function select(id, opts = {}) {
   if (c && !opts.dir && (!S.seq || !S.seq.includes(S.cur) || !prev)) S.seq = ticketSeq(S.cur);
   if (!c) S.seq = null;
   $("app").dataset.detail = c ? "1" : "";
-  if (!c) { box.hidden = true; render(false);
+  if (!c) {
+    clearTimeout(S.fitT);
+    // The ticket sinks away while the board comes back underneath
+    if (!box.hidden && !S.closing && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      box.style.pointerEvents = "none";
+      S.closing = box.animate([{translate: "0 0", opacity: 1}, {translate: "0 24px", opacity: 0}], {duration: 200, easing: "cubic-bezier(.4,0,.9,.6)"});
+      S.closing.onfinish = () => { S.closing = null; if (!S.sel) box.hidden = true; box.style.pointerEvents = ""; };
+    } else if (!S.closing) box.hidden = true;
+    render(false);
     // Back on the board, land on the row the ticket came from
     const b = prevKey && (document.querySelector(`.board [data-k="${CSS.escape(prevKey)}"]`) || document.querySelector(`.board [data-i="${prevKey}"]`));
     if (b && b.offsetParent) { b.scrollIntoView({block: "nearest"}); b.focus({preventScroll: true}); }
@@ -1282,19 +1308,24 @@ function select(id, opts = {}) {
   front.querySelector(".copy").onclick = async e => { const b = e.currentTarget;
     try { await navigator.clipboard.writeText(`${SITE}/?${shareParams()}`); b.textContent = "Link copied"; } catch (err) { b.textContent = "Couldn't copy"; }
     setTimeout(() => { b.textContent = "Copy link"; }, 2000); };
-  box.hidden = false; render(false);
+  const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (S.closing) { S.closing.cancel(); S.closing = null; }
+  if (box.hidden && !still) box.animate([{translate: "0 28px", opacity: 0}, {translate: "0 0", opacity: 1}], {duration: 360, easing: "cubic-bezier(.2,.8,.2,1)"});
+  box.style.pointerEvents = ""; box.hidden = false; render(false);
   if (dir) stackFlip(box, front, was, dir);
   // Keep focus where the hand is: on the arrow just used, else the close button
   const f = opts.dir && front.querySelector(`.bp-step[data-d="${opts.dir}"]:not(:disabled)`) || front.querySelector(".bp-close");
   f.focus({preventScroll: true});
-  // Flipping through tickets: the map waits until the flip has landed (and for the last one of a quick run), so the two never fight for frames
+  // Flipping through tickets: the map glides along with the flip; a quick run of flips only moves it once
   const fit = () => fitRoute(c, box.getBoundingClientRect().top - svg.node().getBoundingClientRect().top);
-  clearTimeout(S.fitT); if (opts.dir) S.fitT = setTimeout(fit, 500); else requestAnimationFrame(fit);
+  clearTimeout(S.fitT); if (opts.dir) S.fitT = setTimeout(fit, 90); else requestAnimationFrame(fit);
 }
 // Phone: frame home and the destination in the strip of map left above the pass
 function fitRoute(c, bottom) {
   if (!FREE || bottom - FREE.y0 < 110) return;
-  frame([S.home, c], {x0: 40, y0: FREE.y0 + 24, x1: W - 40, y1: bottom - 28}, 500);
+  // Leave room for the pin above each end, the legend and the ticket's shadow
+  const h = bottom - FREE.y0, top = Math.min(84, h * 0.3), side = Math.min(90, W * 0.16);
+  frame([S.home, c], {x0: side, y0: FREE.y0 + top, x1: W - side, y1: bottom - Math.min(44, h * 0.15)}, 900);
 }
 
 // ---- Main render
