@@ -88,7 +88,7 @@ details.about summary { cursor: pointer; font-size: 12.5px; color: var(--sign-mu
 details.about { display: flex; flex-direction: column; gap: 8px; }
 .note { font-size: 12px; color: var(--sign-muted); line-height: 1.55; margin: 8px 0 0; }
 .note b { font-weight: 500; color: var(--sign-ink); }
-.mobilebar { display: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Map */
 .mapwrap { position: absolute; inset: 0; background: var(--sea); overflow: hidden; }
@@ -218,32 +218,71 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 .links a.primary { background: var(--sign); color: var(--sign-ink); }
 .links a:hover { outline: 1px solid var(--faint); }
 
+/* Phone: one-line trip summary on top, a bottom sheet for the board, the pass as its own sheet */
+.tripsum, .grab, .tab-filters { display: none; }
 @media (max-width: 760px) {
-  header.topbar { padding: 10px 12px; gap: 8px; }
-  .brand small { display: none; }
-  .picto { width: 28px; height: 28px; }
+  .app { --peek: calc(236px + env(safe-area-inset-bottom, 0px)); }
+  header.topbar { left: var(--gut-l); right: var(--gut-r); width: auto; transform: none; padding: 6px; gap: 0; border-radius: 14px; }
+  .tripsum { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 8px 0 2px; cursor: pointer; border-radius: 10px; }
+  .tripsum:focus-visible { outline: 2px solid var(--yellow); }
+  .tripsum .picto { width: 32px; height: 32px; }
+  .tripsum .picto svg { width: 18px; height: 18px; }
+  .ts-main { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; overflow: hidden; white-space: nowrap; }
+  .ts-main .code { font-size: 15px; }
+  .ts-main span:last-child { font: 500 14px var(--sans); overflow: hidden; text-overflow: ellipsis; }
+  .ts-dates { font: 500 12.5px var(--mono); color: var(--sign-muted); white-space: nowrap; }
+  .ts-chev { font-size: 10px; color: var(--sign-faint); transition: transform .2s; }
+  header.topbar:not(.editing) .topline, header.topbar:not(.editing) .compare { display: none; }
+  header.topbar.editing { gap: 10px; padding-bottom: 12px; }
+  header.topbar.editing .ts-chev { transform: rotate(180deg); }
+  .topline, .compare { padding: 0 6px; }
+  .brand { display: none; }
   .trip { grid-template-columns: 1fr 1fr; flex-basis: 100%; }
   .trip label:first-child { grid-column: 1 / -1; }
-  .legend { display: none; }
-  aside.controls, aside.list { display: none; left: var(--gut-l); right: var(--gut-r); top: auto; width: auto;
-    bottom: calc(68px + env(safe-area-inset-bottom, 0px)); max-height: min(60%, calc(100% - var(--panel-top, 130px) - 72px - env(safe-area-inset-bottom, 0px))); }
+  .compare { padding-top: 10px; }
   .compare .fcnote { display: none; }
+  .legend, aside.controls { display: none; }
+  /* Board as a bottom sheet: peek shows a few rows, full covers the map below the trip bar */
+  aside.list { left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: none; border-radius: 18px 18px 0 0; border-bottom: 0;
+    height: var(--peek); transition: height .28s cubic-bezier(.2,.8,.2,1); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
+  .app[data-sheet="full"] aside.list { height: calc(100% - var(--panel-top, 80px)); }
+  .app[data-detail="1"] aside.list { display: none; }
+  aside.list.collapsed .panelbody { display: flex; }
+  .listtop { flex-direction: column; align-items: stretch; gap: 6px; padding: 0 12px 10px; touch-action: none; }
+  .grab { all: unset; display: block; align-self: center; width: 100%; height: 22px; cursor: pointer; position: relative; }
+  .grab::after { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--sign-3); }
+  .grab:focus-visible::after { background: var(--yellow); }
+  .tab-filters { display: block; }
+  .tabs button { padding: 8px 6px; }
+  #listToggle { display: none; }
+  .app[data-sheet="peek"] .listhead, .app[data-sheet="peek"] .cols, .app[data-sheet="peek"] .dephead, .app[data-sheet="peek"] .foot { display: none; }
+  .app[data-sheet="peek"] .board { overflow: hidden; }
+  #pane-filters .panelbody { display: flex; flex-direction: column; gap: 20px; padding: 4px 16px 20px; overflow-y: auto; }
   .dcols, #deps li .dr { grid-template-columns: 42px 54px minmax(0, 1fr) 34px 72px; }
-  .app[data-sheet="controls"] aside.controls, .app[data-sheet="list"] aside.list { display: flex; }
-  aside.controls.collapsed .panelbody, aside.list.collapsed .panelbody { display: flex; }
-  .chev { display: none !important; }
-  .mobilebar { display: flex; position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); gap: 2px; padding: 3px; border-radius: 12px; }
-  .mobilebar button { font: 500 13px var(--sans); color: var(--sign-muted); background: transparent; border: 0; border-radius: 9px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
-  .mobilebar button[aria-pressed=true] { background: var(--yellow); color: var(--on-yellow); }
-  .zoom { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
-  .detail { bottom: calc(68px + env(safe-area-inset-bottom, 0px)); }
+  #results li button, #deps li .dr { padding: 11px 16px; }
+  /* Map controls sit just above the peeking sheet; pinch zooms */
+  .zoom { bottom: calc(var(--peek) + 12px); }
+  #zin, #zout { display: none; }
+  .app[data-sheet="full"] .zoom { display: none; }
+  /* Boarding pass as its own sheet */
+  .detail { left: 0; right: 0; bottom: 0; width: auto; max-width: none; transform: none; z-index: 5;
+    max-height: min(66%, calc(100% - var(--panel-top, 80px))); overflow-y: auto; overscroll-behavior: contain; }
+  .app[data-detail="1"] .zoom { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: none; }
+  .bp-top { border-radius: 18px 18px 0 0; }
+  .bp-bot { border-radius: 0; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
+}
+@media (max-width: 380px) {
+  .spark svg { display: none; }
+  .pcols, #results li button { grid-template-columns: 30px minmax(0, 1fr) 32px 36px 46px; }
+  .dcols, #deps li .dr { grid-template-columns: 40px 50px minmax(0, 1fr) 32px 64px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
 <div class="app" id="app">
-  <header class="topbar float">
-    <div class="topline">
+  <header class="topbar float" id="topbar">
+    <button class="tripsum" id="tripSum" aria-expanded="false" aria-controls="tripEdit"><span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="ts-main"><span class="code" id="tsFrom"></span><span id="tsCity"></span></span><span class="ts-dates" id="tsDates"></span><span class="ts-chev" aria-hidden="true">▼</span><span class="sr" id="tsLabel"></span></button>
+    <div class="topline" id="tripEdit">
       <div class="brand">
         <span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span>
         <div><h1>Sun Finder</h1><small>Departures to daylight</small></div>
@@ -262,7 +301,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 
   <aside class="controls float" id="controls">
     <button class="panelhead" aria-expanded="true"><span class="caps">Filters</span> <span class="chev" aria-hidden="true">▲</span></button>
-    <div class="panelbody">
+    <div class="panelbody" id="filtersBody">
     <div class="group">
       <h2 class="caps">Light</h2>
       <label class="f"><span class="row">Daylight at least <output id="o-day"></output></span>
@@ -309,10 +348,12 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   </div>
 
   <aside class="list float" id="list">
-    <div class="listtop">
+    <div class="listtop" id="listtop">
+      <button class="grab" id="grab" aria-label="Show more of the list" aria-expanded="false"></button>
       <div class="tabs" role="tablist" aria-label="Board">
         <button role="tab" id="tab-places" data-tab="places" aria-selected="true" aria-controls="pane-places">Sunny places<span class="cnt" id="count"></span></button>
         <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today</button>
+        <button role="tab" id="tab-filters" class="tab-filters" data-tab="filters" aria-selected="false" aria-controls="pane-filters" tabindex="-1">Filters</button>
       </div>
       <button class="chev" id="listToggle" aria-label="Collapse board" aria-expanded="true">▲</button>
     </div>
@@ -337,15 +378,11 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
         <ul class="board" id="deps"></ul>
         <div class="foot" id="depfoot"></div>
       </div>
+      <div class="pane" id="pane-filters" role="tabpanel" aria-labelledby="tab-filters" hidden></div>
     </div>
   </aside>
 
-  <nav class="mobilebar float" aria-label="Panels">
-    <button data-sheet="controls" aria-pressed="false">Filters</button>
-    <button data-sheet="places" aria-pressed="false">Places</button>
-    <button data-sheet="deps" aria-pressed="false">Departures</button>
-  </nav>
-</div>
+  </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
@@ -524,11 +561,15 @@ function layout() {
   const top = document.querySelector(".topbar").getBoundingClientRect().bottom - r.top;
   $("app").style.setProperty("--panel-top", `${Math.round(top + 12)}px`);
   const mobile = isMobile();
+  // Filters live in the left panel on desktop and in the sheet's Filters tab on phones
+  const fb = $("filtersBody"), fHome = mobile ? $("pane-filters") : $("controls");
+  if (fb.parentElement !== fHome) fHome.appendChild(fb);
+  if (!mobile && S.tab === "filters") setTab("places");
   const side = id => !mobile && !$(id).classList.contains("collapsed") ? $(id).getBoundingClientRect() : null;
   const c = side("controls"), l = side("list");
   let x0 = c ? c.right - r.left + 12 : 8, x1 = l ? l.left - r.left - 12 : W - 8;
   if (x1 - x0 < 420) { x0 = 8; x1 = W - 8; }
-  FREE = {x0, x1, y0: top + 8, y1: H - (mobile ? 74 : 64)};
+  FREE = {x0, x1, y0: top + 8, y1: H - (mobile ? parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 250 : 64) - (mobile ? 12 : 0)};
   proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "Sphere"});
   gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
   gClip.selectAll("path").data(land.features).join("path").attr("d", path);
@@ -648,6 +689,7 @@ function monthChart(c) {
 }
 function select(id) {
   S.sel = id; const c = S.rows.find(r => r.i === id); const box = $("detail");
+  $("app").dataset.detail = c ? "1" : "";
   if (!c) { box.hidden = true; render(false); return; }
   const home = S.home, dep = $("dep").value, ret = $("ret").value;
   const gf = `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${home.i} to ${c.i} on ${dep} through ${ret}`)}`;
@@ -679,6 +721,17 @@ function select(id) {
     <div class="links"><a class="primary" href="${gf}" target="_blank" rel="noopener">Google Flights ↗</a><a href="${sk}" target="_blank" rel="noopener">Skyscanner ↗</a></div></div>`;
   box.querySelector(".close").onclick = () => select(null);
   box.hidden = false; render(false);
+  if (isMobile()) requestAnimationFrame(() => fitRoute(c, box.getBoundingClientRect().top - svg.node().getBoundingClientRect().top));
+}
+// Phone: frame home and the destination in the strip of map left above the pass
+function fitRoute(c, bottom) {
+  if (!FREE || bottom - FREE.y0 < 110) return;
+  const pts = [proj([S.home.lo, S.home.la]), proj([c.lo, c.la])];
+  const [xa, xb] = d3.extent(pts, p => p[0]), [ya, yb] = d3.extent(pts, p => p[1]);
+  const y0 = FREE.y0 + 24, y1 = bottom - 28, x0 = 40, x1 = W - 40;
+  const k = Math.max(1, Math.min(12, (x1 - x0) / (xb - xa || 1), (y1 - y0) / (yb - ya || 1)));
+  const t = d3.zoomIdentity.translate((x0 + x1)/2 - k*(xa + xb)/2, (y0 + y1)/2 - k*(ya + yb)/2).scale(k);
+  svg.transition().duration(500).call(zoom.transform, t);
 }
 
 // ---- Main render
@@ -723,6 +776,9 @@ function render(recompute = true) {
     `<b>${esc(S.home.i)}</b> ${esc(S.home.n)}, ${fmtShort(trip.a)}–${fmtShort(trip.b)}: ` +
     (h ? `<b>${h.sun.toFixed(1)} h</b> sun a day, ${h.day.toFixed(1)} h daylight${h.d >= 40 ? ` (${short(h.n)} weather)` : ""}.` : `${hdl.toFixed(1)} h daylight.`) +
     (best ? ` Sunniest match: <b>${short(best.n)}</b> with <b>${best.sun.toFixed(1)} h</b>` + (h ? `, <span class="up">${(best.sun / Math.max(h.sun, 0.1)).toFixed(1)}× more</span>.` : ".") : "");
+  $("tsFrom").textContent = S.home.i; $("tsCity").textContent = S.home.n;
+  $("tsDates").textContent = `${fmtShort(trip.a)}–${fmtShort(trip.b)}`;
+  $("tsLabel").textContent = "Edit trip";
   drawCities(); legend();
   if (S.tab === "deps") drawDeps();
 }
@@ -796,19 +852,23 @@ function drawDeps() {
 $("deps").addEventListener("click", e => {
   if (e.target.closest("[data-retry]")) return loadDeps(true);
   const b = e.target.closest("[data-city]"); if (!b) return;
-  if (isMobile()) setSheet(""); select(b.dataset.city);
+  select(b.dataset.city);
 });
 $("sunnyOnly").onclick = () => { S.sunnyOnly = !S.sunnyOnly; drawDeps(); };
 function setTab(t) {
   S.tab = t;
   document.querySelectorAll(".tabs [role=tab]").forEach(b => { const on = b.dataset.tab === t; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
-  $("pane-places").hidden = t !== "places"; $("pane-deps").hidden = t !== "deps";
+  $("pane-places").hidden = t !== "places"; $("pane-deps").hidden = t !== "deps"; $("pane-filters").hidden = t !== "filters";
   if (t === "deps") loadDeps();
 }
-document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[role=tab]"); if (b) setTab(b.dataset.tab); });
+document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[role=tab]"); if (!b) return;
+  if (isMobile() && (S.tab === b.dataset.tab || $("app").dataset.sheet !== "full")) setSheet(S.tab === b.dataset.tab && $("app").dataset.sheet === "full" ? "peek" : "full");
+  setTab(b.dataset.tab); });
 document.querySelector(".tabs").addEventListener("keydown", e => {
   if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-  const t = S.tab === "places" ? "deps" : "places"; setTab(t); $("tab-" + t).focus();
+  const tabs = [...document.querySelectorAll(".tabs [role=tab]")].filter(b => b.offsetParent);
+  const k = tabs.findIndex(b => b.dataset.tab === S.tab), n = tabs[(k + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+  setTab(n.dataset.tab); n.focus();
 });
 
 // ---- Events
@@ -821,19 +881,24 @@ $("home").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blu
 $("locate").onclick = () => locate(false);
 $("colorBy").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
   S.colorBy = b.dataset.k; [...$("colorBy").children].forEach(x => x.setAttribute("aria-pressed", x === b)); render(false); });
-$("results").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (!b) return; if (isMobile()) setSheet(""); select(b.dataset.i); });
-function setSheet(s) {
-  const sheet = s === "places" || s === "deps" ? "list" : s;
-  $("app").dataset.sheet = sheet;
-  if (sheet === "list") setTab(s);
-  document.querySelectorAll(".mobilebar button").forEach(x => x.setAttribute("aria-pressed", !!s && x.dataset.sheet === s));
-  S.sheet = s;
-  if (s) $("detail").hidden = true;
+$("results").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (!b) return; select(b.dataset.i); });
+// Phone bottom sheet: "peek" shows a few rows over the map, "full" shows the whole board
+function setSheet(state) {
+  $("app").dataset.sheet = state;
+  $("grab").setAttribute("aria-expanded", state === "full");
+  $("grab").setAttribute("aria-label", state === "full" ? "Show less of the list" : "Show more of the list");
 }
-document.querySelector(".mobilebar").addEventListener("click", e => { const b = e.target.closest("button");
-  if (b) setSheet(S.sheet === b.dataset.sheet ? "" : b.dataset.sheet); });
+$("grab").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
+{ let y0 = null;
+  $("listtop").addEventListener("pointerdown", e => { if (isMobile()) y0 = e.clientY; });
+  addEventListener("pointerup", e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null;
+    if (dy < -24) setSheet("full"); else if (dy > 24) setSheet("peek"); });
+  addEventListener("pointercancel", () => { y0 = null; }); }
+$("tripSum").addEventListener("click", () => {
+  const open = $("topbar").classList.toggle("editing"); $("tripSum").setAttribute("aria-expanded", open);
+  if (open) setSheet("peek"); layout();
+});
 document.querySelector("#controls .panelhead").addEventListener("click", e => {
-  if (isMobile()) { setSheet(""); return; }
   const closed = $("controls").classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-expanded", !closed); layout();
 });
 $("listToggle").addEventListener("click", e => {
@@ -841,6 +906,7 @@ $("listToggle").addEventListener("click", e => {
   e.currentTarget.setAttribute("aria-label", closed ? "Expand board" : "Collapse board"); layout();
 });
 new ResizeObserver(() => layout()).observe($("map"));
+setSheet("peek");
 render(); layout();
 </script>
 </body></html>
