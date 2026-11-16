@@ -1,10 +1,12 @@
 // Live departures for one airport for the rest of today (airport local time).
 // Data: AeroDataBox via RapidAPI. Set AERODATABOX_KEY in the Vercel project to switch it on.
 const HOST = "aerodatabox.p.rapidapi.com";
+// Known airport codes; anything else is rejected before it costs an upstream call
+const CODES = new Set(require("./_codes.json"));
 
 module.exports = async (req, res) => {
   const code = String((req.query && req.query.iata) || "").toUpperCase();
-  if (!/^[A-Z]{3}$/.test(code)) return res.status(400).json({error: "bad_iata"});
+  if (!/^[A-Z]{3}$/.test(code) || !CODES.has(code)) return res.status(400).json({error: "bad_iata"});
   const key = process.env.AERODATABOX_KEY;
   if (!key) return res.status(503).json({error: "not_configured"});
 
