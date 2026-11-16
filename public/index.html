@@ -38,14 +38,34 @@ body { background: var(--bg); color: var(--ink); font: 400 14px/1.45 var(--sans)
 :focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
 
 /* Trip bar */
-header.topbar { top: var(--top); left: 50%; transform: translateX(-50%); width: min(820px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; }
-.topline { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 18px; }
 .brand { display: flex; align-items: center; gap: 10px; padding-bottom: 2px; }
 .picto { width: 34px; height: 34px; border-radius: 8px; background: var(--yellow); color: var(--on-yellow); display: grid; place-items: center; flex: none; }
 .picto svg { width: 20px; height: 20px; }
 h1 { font: 600 15px/1.1 var(--sans); margin: 0; letter-spacing: -0.005em; white-space: nowrap; }
 .brand small { display: block; font-size: 11.5px; color: var(--sign-faint); margin-top: 2px; white-space: nowrap; }
-.trip { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; flex: 1 1 420px; min-width: 0; }
+.trip { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 8px; min-width: 0; }
+.trip label:first-child { grid-column: 1 / -1; }
+/* Step one: where and when */
+.step-trip { display: flex; flex-direction: column; gap: 16px; padding: 18px 18px 20px; }
+.step-trip .q { font: 600 21px/1.25 var(--sans); letter-spacing: -0.015em; margin: 8px 0 2px; color: var(--sign-ink); text-wrap: balance; }
+.go { height: 44px; border: 0; border-radius: 10px; background: var(--yellow); color: var(--on-yellow); font: 600 14px var(--sans); cursor: pointer; }
+.go:hover { filter: brightness(1.06); }
+.hint { margin: -4px 0 0; font-size: 12px; color: var(--sign-faint); text-wrap: pretty; }
+.hint.warn { color: var(--st-warn); }
+.app[data-step="trip"] #list > :not(.step-trip):not(.grab) { display: none !important; }
+.app:not([data-step="trip"]) .step-trip { display: none; }
+/* Step two header: the trip as one tappable line, plus how home compares */
+.tripbar { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 2px; }
+.tripsum { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 6px 12px 6px 6px; border-radius: 10px; background: var(--sign-2); cursor: pointer; }
+.tripsum:hover { background: var(--sign-3); }
+.tripsum:focus-visible { outline: 2px solid var(--yellow); }
+.tripsum .picto { width: 32px; height: 32px; }
+.tripsum .picto svg { width: 18px; height: 18px; }
+.ts-main { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; overflow: hidden; white-space: nowrap; }
+.ts-main .code { font-size: 15px; }
+.ts-main span:last-child { font: 500 14px var(--sans); overflow: hidden; text-overflow: ellipsis; }
+.ts-dates { font: 500 12.5px var(--mono); color: var(--sign-muted); white-space: nowrap; }
+.tripsum .edit { font: 500 12px var(--sans); color: var(--yellow); }
 .trip label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fromrow { display: flex; gap: 4px; min-width: 0; }
 input, select { font: 400 13.5px var(--sans); color: var(--sign-ink); background: var(--sign-2); border: 1px solid transparent; border-radius: 8px; height: 36px; padding: 0 10px; width: 100%; min-width: 0; box-sizing: border-box; }
@@ -57,7 +77,7 @@ input:hover, select:hover { border-color: var(--sign-3); }
 .iconbtn svg { width: 16px; height: 16px; }
 .iconbtn[aria-busy=true] svg { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
-.compare { font-size: 12.5px; color: var(--sign-muted); min-width: 0; margin: 0; padding-top: 10px; border-top: 1px solid var(--sign-line); text-wrap: pretty; }
+.compare { font-size: 12.5px; color: var(--sign-muted); min-width: 0; margin: 0; padding: 0 4px; text-wrap: pretty; }
 .compare b { color: var(--sign-ink); font-weight: 500; }
 .compare .up { color: var(--yellow); font-weight: 500; }
 .compare .fcnote { display: block; font-size: 11.5px; color: var(--sign-faint); margin-bottom: 2px; }
@@ -119,7 +139,7 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 .zoom svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
 
 /* Board (places + departures) */
-aside.list { left: var(--gut-l); top: var(--panel-top, 130px); width: 492px; max-height: calc(100% - var(--panel-top, 130px) - 16px - env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; overflow: hidden; }
+aside.list { left: var(--gut-l); top: var(--top); width: 492px; max-height: calc(100% - var(--top) - 16px - env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; overflow: hidden; }
 aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .listtop { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; }
 .tabs { display: flex; gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 9px; flex: 1; }
@@ -237,36 +257,26 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 .links a:hover { outline: 1px solid var(--faint); }
 
 /* Phone: one-line trip summary on top, a bottom sheet for the board, the pass as its own sheet */
-.tripsum, .grab { display: none; }
+.grab { display: none; }
 @media (max-width: 760px) {
-  .app { --peek: calc(236px + env(safe-area-inset-bottom, 0px)); }
-  header.topbar { left: var(--gut-l); right: var(--gut-r); width: auto; transform: none; padding: 6px; gap: 0; border-radius: 14px; }
-  .tripsum { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 8px 0 2px; cursor: pointer; border-radius: 10px; }
-  .tripsum:focus-visible { outline: 2px solid var(--yellow); }
-  .tripsum .picto { width: 32px; height: 32px; }
-  .tripsum .picto svg { width: 18px; height: 18px; }
-  .ts-main { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; overflow: hidden; white-space: nowrap; }
-  .ts-main .code { font-size: 15px; }
-  .ts-main span:last-child { font: 500 14px var(--sans); overflow: hidden; text-overflow: ellipsis; }
-  .ts-dates { font: 500 12.5px var(--mono); color: var(--sign-muted); white-space: nowrap; }
-  .ts-chev { font-size: 10px; color: var(--sign-faint); transition: transform .2s; }
-  header.topbar:not(.editing) .topline, header.topbar:not(.editing) .compare { display: none; }
-  header.topbar.editing { gap: 10px; padding-bottom: 12px; }
-  header.topbar.editing .ts-chev { transform: rotate(180deg); }
-  .topline, .compare { padding: 0 6px; }
-  .brand { display: none; }
-  .trip { grid-template-columns: 1fr 1fr; flex-basis: 100%; }
-  .trip label:first-child { grid-column: 1 / -1; }
-  .compare { padding-top: 10px; }
+  .app { --peek: calc(292px + env(safe-area-inset-bottom, 0px)); }
+  .step-trip { padding: 4px 16px 16px; gap: 14px; }
+  .step-trip .brand { display: none; }
+  .step-trip .q { font-size: 19px; margin-top: 0; }
+  .tripbar { padding: 0 12px 2px; }
   .compare .fcnote { display: none; }
+  .app[data-sheet="peek"] .compare { display: none; }
+  .app[data-step="trip"] aside.list { height: auto; }
+  .app[data-step="trip"] .zoom { display: none; }
   .legend { display: none; }
   /* Board as a bottom sheet: peek shows a few rows, full covers the map below the trip bar */
   aside.list { left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: none; border-radius: 18px 18px 0 0; border-bottom: 0;
     height: var(--peek); transition: height .28s cubic-bezier(.2,.8,.2,1); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
-  .app[data-sheet="full"] aside.list { height: calc(100% - var(--panel-top, 80px)); }
+  .app[data-sheet="full"] aside.list { height: calc(100% - var(--top)); }
   .app[data-detail="1"] aside.list { display: none; }
   aside.list.collapsed .panelbody { display: flex; }
-  .listtop { flex-direction: column; align-items: stretch; gap: 6px; padding: 0 12px 10px; touch-action: none; }
+  .listtop { flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px 10px; }
+  .grab, .tripbar { touch-action: none; }
   .grab { all: unset; display: block; align-self: center; width: 100%; height: 22px; cursor: pointer; position: relative; }
   .grab::after { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--sign-3); }
   .grab:focus-visible::after { background: var(--yellow); }
@@ -278,7 +288,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .app[data-sheet="peek"] #pane-places { overflow: hidden; }
   .dcols, #deps li .dr { grid-template-columns: 56px minmax(0, 1fr) 30px 46px 66px; }
   .dt .fn { font-size: 10.5px; overflow: visible; }
-  .dcols .csun::after { content: "Sun"; } .dcols .csun span { display: none; }
+  .cols .csun::after { content: "Sun"; } .cols .csun span { display: none; }
   .dsun svg, #deps .fare, .dcols .cfare { display: none; }
   .mfare { display: inline; }
   #results li button, #deps li .dr { padding: 11px 16px; }
@@ -288,7 +298,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .app[data-sheet="full"] .zoom { display: none; }
   /* Boarding pass as its own sheet */
   .detail { left: 0; right: 0; bottom: 0; width: auto; max-width: none; transform: none; z-index: 5;
-    max-height: min(66%, calc(100% - var(--panel-top, 80px))); overflow-y: auto; overscroll-behavior: contain; }
+    max-height: min(66%, calc(100% - var(--top))); overflow-y: auto; overscroll-behavior: contain; }
   .app[data-detail="1"] .zoom { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: none; }
   .bp-top { border-radius: 18px 18px 0 0; }
   .bp-bot { border-radius: 0; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
@@ -302,25 +312,6 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 </style>
 
 <div class="app" id="app">
-  <header class="topbar float" id="topbar">
-    <button class="tripsum" id="tripSum" aria-expanded="false" aria-controls="tripEdit"><span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="ts-main"><span class="code" id="tsFrom"></span><span id="tsCity"></span></span><span class="ts-dates" id="tsDates"></span><span class="ts-chev" aria-hidden="true">▼</span><span class="sr" id="tsLabel"></span></button>
-    <div class="topline" id="tripEdit">
-      <div class="brand">
-        <span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span>
-        <div><h1>Sun Finder</h1><small>Departures to daylight</small></div>
-      </div>
-      <div class="trip">
-        <label><span class="caps">From</span>
-          <span class="fromrow"><input id="home" list="aplist" autocomplete="off" spellcheck="false" placeholder="Airport or city" aria-describedby="compare">
-          <button class="iconbtn" id="locate" type="button" aria-label="Use my location: nearest airport" title="Use my location"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="4.5"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><path d="M8 1v2.2M8 12.8V15M1 8h2.2M12.8 8H15"/></svg></button></span></label>
-        <label><span class="caps">Depart</span><input type="date" id="dep"></label>
-        <label><span class="caps">Return</span><input type="date" id="ret"></label>
-      </div>
-    </div>
-    <p class="compare" id="compare" aria-live="polite"></p>
-    <datalist id="aplist"></datalist>
-  </header>
-
   <div class="mapwrap">
     <svg id="map" role="img" aria-label="World map of destinations coloured by sunshine"></svg>
     <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show nearest destinations" title="Nearest destinations"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
@@ -329,8 +320,26 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   </div>
 
   <aside class="list float" id="list">
+    <button class="grab" id="grab" aria-label="Show more of the list" aria-expanded="false"></button>
+    <section class="step-trip" id="stepTrip" aria-labelledby="tripQ">
+      <div class="brand"><span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><div><h1>Sun Finder</h1><small>Departures to daylight</small></div></div>
+      <h2 class="q" id="tripQ">Where are you, and when do you want to go?</h2>
+      <div class="trip">
+        <label><span class="caps">From</span>
+          <span class="fromrow"><input id="home" list="aplist" autocomplete="off" spellcheck="false" placeholder="Airport or city">
+          <button class="iconbtn" id="locate" type="button" aria-label="Use my location: nearest airport" title="Use my location"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="4.5"/><circle cx="8" cy="8" r="1.4" fill="currentColor" stroke="none"/><path d="M8 1v2.2M8 12.8V15M1 8h2.2M12.8 8H15"/></svg></button></span></label>
+        <label><span class="caps">Depart</span><input type="date" id="dep"></label>
+        <label><span class="caps">Return</span><input type="date" id="ret"></label>
+      </div>
+      <button class="go" id="go" type="button">Show sunny places <span aria-hidden="true">→</span></button>
+      <p class="hint" id="tripHint" aria-live="polite"></p>
+      <datalist id="aplist"></datalist>
+    </section>
+    <div class="tripbar" id="tripBar">
+      <button class="tripsum" id="tripSum" type="button" aria-label="Change airport or dates"><span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="ts-main"><span class="code" id="tsFrom"></span><span id="tsCity"></span></span><span class="ts-dates" id="tsDates"></span><span class="edit">Change</span></button>
+      <p class="compare" id="compare" aria-live="polite"></p>
+    </div>
     <div class="listtop" id="listtop">
-      <button class="grab" id="grab" aria-label="Show more of the list" aria-expanded="false"></button>
       <div class="tabs" role="tablist" aria-label="Board">
         <button role="tab" id="tab-places" data-tab="places" aria-selected="true" aria-controls="pane-places">Sunny places<span class="cnt" id="count"></span></button>
         <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today</button>
@@ -387,7 +396,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
     <p class="note"><b>Departures</b> are live schedules from AeroDataBox. Sun at the destination is today's forecast; <b>~</b> means it's estimated from nearby weather stations.</p>
     </details>
         </div>
-        <div class="cols pcols caps" aria-hidden="true"><span>Code</span><span>Destination</span><span>Sun a day</span><span class="r">High</span><span class="r">Fare</span></div>
+        <div class="cols pcols caps" aria-hidden="true"><span>Code</span><span>Destination</span><span class="csun"><span>Sun a day</span></span><span class="r">High</span><span class="r">Fare</span></div>
         <ul class="board" id="results"></ul>
         <div class="foot key"><span><i></i>Forecast sun</span><span><i class="t"></i>Typical sun</span><span><i class="r"></i>Rain day</span><span>Grey: daylight</span></div>
       </div>
@@ -578,8 +587,7 @@ function layout() {
   const r = svg.node().getBoundingClientRect(); W = r.width; H = r.height;
   svg.attr("viewBox", `0 0 ${W} ${H}`);
   // Fit the globe into the open space between the floating panels
-  const top = document.querySelector(".topbar").getBoundingClientRect().bottom - r.top;
-  $("app").style.setProperty("--panel-top", `${Math.round(top + 12)}px`);
+  const top = 8;
   const mobile = isMobile();
   const side = id => !mobile && !$(id).classList.contains("collapsed") ? $(id).getBoundingClientRect() : null;
   const l = side("list");
@@ -797,7 +805,8 @@ function render(recompute = true) {
     (best ? ` Sunniest match: <b>${short(best.n)}</b> with <b>${best.sun.toFixed(1)} h</b>` + (h ? `, <span class="up">${(best.sun / Math.max(h.sun, 0.1)).toFixed(1)}× more</span>.` : ".") : "");
   $("tsFrom").textContent = S.home.i; $("tsCity").textContent = S.home.n;
   $("tsDates").textContent = `${fmtShort(trip.a)}–${fmtShort(trip.b)}`;
-  $("tsLabel").textContent = "Edit trip";
+  $("tripHint").textContent = S.note || "Tip: the target button picks the airport nearest you.";
+  $("tripHint").classList.toggle("warn", !!S.note);
   drawCities(); legend();
   if (S.tab === "deps") drawDeps();
 }
@@ -918,14 +927,18 @@ function setSheet(state) {
 }
 $("grab").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
 { let y0 = null;
-  $("listtop").addEventListener("pointerdown", e => { if (isMobile()) y0 = e.clientY; });
+  $("list").addEventListener("pointerdown", e => { if (isMobile() && e.target.closest(".grab, .tripbar, .listtop") && !e.target.closest("button:not(.grab)")) y0 = e.clientY; });
   addEventListener("pointerup", e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null;
     if (dy < -24) setSheet("full"); else if (dy > 24) setSheet("peek"); });
   addEventListener("pointercancel", () => { y0 = null; }); }
-$("tripSum").addEventListener("click", () => {
-  const open = $("topbar").classList.toggle("editing"); $("tripSum").setAttribute("aria-expanded", open);
-  if (open) setSheet("peek"); layout();
-});
+// Two steps in one panel: first where and when, then filters and the board
+function setStep(st) {
+  $("app").dataset.step = st;
+  if (st === "trip") { if (S.sel) select(null); if (isMobile()) setSheet("peek"); }
+  layout();
+}
+$("go").addEventListener("click", () => { S.note = ""; setStep("results"); render(false); zoomNearby(true); $("tripSum").focus({preventScroll: true}); });
+$("tripSum").addEventListener("click", () => { setStep("trip"); if (!isMobile()) $("home").focus(); });
 $("filterToggle").addEventListener("click", e => {
   const open = $("filterBox").hidden; $("filterBox").hidden = !open; $("filterSum").hidden = open;
   e.currentTarget.setAttribute("aria-expanded", open);
@@ -936,7 +949,7 @@ $("listToggle").addEventListener("click", e => {
   e.currentTarget.setAttribute("aria-label", closed ? "Expand board" : "Collapse board"); layout();
 });
 new ResizeObserver(() => layout()).observe($("map"));
-setSheet("peek");
+setSheet("peek"); $("app").dataset.step = "trip";
 render(); layout();
 </script>
 </body></html>
