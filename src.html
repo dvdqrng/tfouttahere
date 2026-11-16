@@ -128,10 +128,20 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 #base .grat { fill: none; stroke: var(--ink); stroke-opacity: .04; stroke-width: 0.5; vector-effect: non-scaling-stroke; }
 #map .city { cursor: pointer; }
 #map .city .hit { fill: transparent; stroke: none; }
-#map .city .dot { stroke: var(--halo); stroke-width: 1.5; }
+#map .city .dot { fill: var(--sign); stroke: #fff; stroke-width: 1.5; }
+#map .city .core { fill: var(--yellow); pointer-events: none; }
 #map .city.out .dot { fill: var(--faint); stroke: none; opacity: .6; }
-#map .city.sel .dot { stroke: var(--ink); stroke-width: 2; }
-#map .city text { font: 500 11.5px var(--sans); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+#map .city.sel .dot { stroke: var(--yellow); stroke-width: 2; }
+/* Pins: small airport signs with the place, its sky, hours of sun and temperature */
+#map .pin { color: var(--sign-muted); }
+#map .pin rect, #map .pin .tip { fill: var(--sign); }
+#map .pin rect { stroke: rgba(255,255,255,.16); stroke-width: 1; }
+#map .city.sel .pin rect, #map .city.hot .pin rect { stroke: var(--yellow); stroke-width: 1.5; }
+#map .pin text { pointer-events: none; }
+#map .pin .nm { font: 600 11.5px var(--sans); fill: var(--sign-ink); }
+#map .pin .st { font: 500 10.5px var(--mono); fill: var(--sign-muted); }
+#map .pin .st .h { fill: var(--yellow); }
+#map .pin .ic.clear { color: var(--yellow); }
 #map .homemk rect { fill: var(--sign); }
 #map .homemk path { fill: var(--yellow); }
 #map .homemk text { font: 600 11px var(--mono); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round; }
@@ -156,7 +166,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 @media (min-width: 761px) {
   aside.list { transition: max-height .28s cubic-bezier(.2,.8,.2,1); }
   .app[data-step="results"][data-sheet="peek"] aside.list { max-height: min(328px, 64%); }
-  .app[data-sheet="peek"] .compare, .app[data-sheet="peek"] .foot, .app[data-sheet="peek"] .fsum { display: none; }
+  .app[data-sheet="peek"] .compare, .app[data-sheet="peek"] .foot { display: none; }
   /* A handle on top and a labelled toggle make the two heights obvious */
   .app[data-step="results"] .grab { all: unset; display: block; align-self: center; width: 100%; height: 14px; cursor: pointer; position: relative; flex: none; }
   .grab::after { content: ""; position: absolute; left: 50%; top: 6px; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: var(--sign-3); }
@@ -184,7 +194,14 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .ftoggle .chev { margin-left: 2px; transition: transform .15s; }
 .ftoggle[aria-expanded=true] { background: var(--sign-3); }
 .ftoggle[aria-expanded=true] .chev { transform: rotate(180deg); }
-.fsum { margin: -2px 16px 10px; font: 400 11.5px var(--mono); color: var(--sign-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The filters in use, always in view: one chip each, tap to adjust */
+.fsum { display: flex; gap: 6px; margin: -2px 0 10px; padding: 2px 16px; overflow-x: auto; scrollbar-width: none; flex: none; }
+.fsum::-webkit-scrollbar { display: none; }
+.fchip { flex: none; height: 30px; padding: 0 11px; border: 0; border-radius: 15px; background: var(--sign-2); color: var(--sign-muted); font: 500 11.5px var(--mono); white-space: nowrap; cursor: pointer; }
+.fchip b { font-weight: 500; color: var(--yellow); }
+.fchip.any { color: var(--sign-faint); }
+.fchip:hover { background: var(--sign-3); color: var(--sign-ink); }
+.fchip:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
 .fsum[hidden] { display: none; }
 .filters { display: flex; flex-direction: column; gap: 18px; padding: 6px 16px 16px; flex: none; border-top: 1px solid var(--sign-line); }
 .filters[hidden] { display: none; }
@@ -210,7 +227,7 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 #results li button:hover, #deps li button.dr:hover { background: var(--sign-2); }
 #results li button.sel { background: color-mix(in srgb, var(--yellow) 14%, transparent); }
 #results li button.hot, #deps li .dr.hot { background: var(--sign-2); }
-#map .city.hot .dot { stroke: var(--ink); stroke-width: 2; }
+#map .city.hot .dot { stroke: var(--yellow); stroke-width: 2; }
 #results li button:focus-visible, #deps li button.dr:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
 .pl { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .pl .nm { font: 500 13.5px/1.25 var(--sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -354,7 +371,8 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
   #listToggle { display: none; }
   .app[data-sheet="peek"] .listhead, .app[data-sheet="peek"] .cols, .app[data-sheet="peek"] .dephead, .app[data-sheet="peek"] .foot { display: none; }
   .app[data-sheet="peek"] .board { overflow: hidden; }
-  .app[data-sheet="peek"] .fsum, .app[data-sheet="peek"] .filters, .app[data-sheet="peek"] .foot.key { display: none; }
+  .app[data-sheet="peek"] .filters, .app[data-sheet="peek"] .foot.key { display: none; }
+  .app[data-sheet="peek"] .fsum { margin-top: 0; }
   .app[data-sheet="peek"] #pane-places { overflow: hidden; }
   .app[data-sheet="peek"] .panelbody { touch-action: none; }
   .pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 98px 44px 50px; gap: 8px; }
@@ -404,6 +422,38 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
   .pcols, #results li button { grid-template-columns: 30px minmax(0, 1fr) 36px 40px 46px; }
   .dcols, #deps li .dr { grid-template-columns: 52px minmax(0, 1fr) 28px 42px 60px; }
 }
+/* Departures as a split-flap board: amber letters, one per flap, everything else in spaced mono capitals */
+#pane-deps { --flap: #f5b82e; }
+#deps .flap { display: flex; gap: 2px; overflow: hidden; perspective: 240px; padding: 1px 0; }
+#deps .flap i { flex: none; width: 15px; height: 22px; display: grid; place-items: center; font: 600 12.5px/1 var(--mono); font-style: normal; color: var(--flap);
+  background: linear-gradient(#141821 0 47%, #04060a 47% 53%, #0e1118 53%); border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
+#deps .flap i.sp { width: 6px; background: none; box-shadow: none; }
+#deps.flip .flap i:not(.sp) { animation: flapin .44s calc(var(--i) * 26ms + var(--r) * 45ms) both cubic-bezier(.3,.7,.3,1); }
+@keyframes flapin { 0% { transform: rotateX(-92deg); opacity: 0; } 55% { transform: rotateX(14deg); opacity: 1; } 100% { transform: none; } }
+#deps .dt b { color: var(--flap); font-size: 13.5px; letter-spacing: .06em; }
+#deps .dt .fn, #deps .pl .meta, #deps .st, #deps .fare, #deps .tmp, #pane-deps .dephead > span, #pane-deps .foot { font-family: var(--mono); text-transform: uppercase; letter-spacing: .08em; }
+#deps .pl { gap: 4px; } #deps .pl .meta { font-size: 10.5px; } #deps .pl .meta .code { letter-spacing: .08em; color: var(--sign-muted); font-weight: 500; font-size: 10.5px; }
+#deps .st { font-size: 10.5px; } #deps .fare { color: var(--flap); }
+#deps li .dr { padding-top: 11px; padding-bottom: 11px; }
+#pane-deps .dephead > span { font-size: 11px; } #pane-deps .dephead > span::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--st-go); margin-right: 9px; }
+#pane-deps .dephead .depnote { text-transform: none; letter-spacing: 0; font-family: var(--sans); }
+#pane-deps .foot { font-size: 10.5px; }
+@media (max-width: 760px) { #deps .flap i { width: 12px; height: 20px; font-size: 11px; } #deps .flap i.sp { width: 4px; } #deps .flap { gap: 1.5px; } }
+
+/* Liquid glass: the panel and the map controls are tinted glass over the map, with a bright rim where the light catches */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  aside.list, .legend, .zoom {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--sign) 72%, transparent), color-mix(in srgb, var(--sign) 84%, transparent));
+    -webkit-backdrop-filter: blur(26px) saturate(1.8); backdrop-filter: blur(26px) saturate(1.8);
+    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 1px rgba(255,255,255,.07), inset 0 -18px 28px -22px rgba(255,255,255,.14);
+  }
+  aside.list::before, .legend::before, .zoom::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 1;
+    background: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,255,255,.06) 30%, rgba(255,255,255,.02) 68%, rgba(255,255,255,.3));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+  /* Inside the glass, wells and chips are lighter glass rather than solid blocks */
+  aside.list, .zoom, .legend { --sign-2: rgba(255,255,255,.09); --sign-3: rgba(255,255,255,.16); --sign-muted: #c6cbd3; --sign-faint: #aab0ba; }
+}
+@media (prefers-reduced-transparency: reduce) { aside.list, .legend, .zoom { background: var(--sign); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
 
@@ -458,7 +508,7 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
             <option value="temp">Warmest</option>
           </select>
         </div>
-        <p class="fsum" id="filterSum"></p>
+        <div class="fsum" id="filterSum" role="group" aria-label="Filters in use"></div>
         <div class="filters" id="filterBox" hidden>
     <div class="group">
       <h2 class="caps">Light</h2>
@@ -844,7 +894,7 @@ function computeField() {
 // ---- Sunshine shader: a WebGL layer between the base map and the markers. Sunny places glow warm with slow
 // light shafts and glints; dull places sit under a cool veil and drifting clouds, thicker the fewer hours of sun.
 const FX = (() => {
-  const cv = $("sunfx"), none = {ok: false, resize() {}, field() {}, touch() {}, draw() {}};
+  const cv = $("sunfx"), none = {ok: false, resize() {}, field() {}, touch() {}, draw() {}, rest() {}};
   const VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
   const FS = `precision highp float;
 uniform vec2 u_res; uniform float u_px; uniform vec3 u_view; uniform float u_t; uniform float u_dark; uniform sampler2D u_field;
@@ -852,10 +902,10 @@ const float PI = 3.14159265;
 float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
   return mix(mix(hash(i), hash(i + vec2(1., 0.)), f.x), mix(hash(i + vec2(0., 1.)), hash(i + vec2(1., 1.)), f.x), f.y); }
-float fbm(vec2 p) { float a = .5, s = 0.; for (int i = 0; i < 4; i++) { s += a * vn(p); p = p * 2.03 + 17.; a *= .5; } return s / .9375; }
+float fbm(vec2 p) { float a = .5, s = 0.; for (int i = 0; i < 4; i++) { s += a * vn(p); p = p * 2.03 + 17. + u_t * .012; a *= .5; } return s / .9375; }
 // Clouds are pinned to the map; two neighbouring detail levels cross-fade so they keep their size on screen at any zoom
 float clouds(vec2 m, float l0, float fr) {
-  float f = exp2(l0) * 8.; vec2 wind = vec2(u_t * .012, u_t * .004);
+  float f = exp2(l0) * 8.; vec2 wind = vec2(u_t * .055, u_t * .018);
   return mix(fbm(m * f + wind), fbm(m * f * 2. + wind + 31.7), fr);
 }
 vec4 over(vec4 d, vec3 c, float a) { return vec4(c * a + d.rgb * (1. - a), a + d.a * (1. - a)); }
@@ -903,7 +953,7 @@ void main() {
 }`;
   const gl = cv.getContext("webgl", {alpha: true, premultipliedAlpha: true, antialias: false, powerPreference: "low-power"});
   if (!gl) return none;
-  let U = null, tex = null, last = null, dirty = true, lastT = 0, t0 = performance.now();
+  let U = null, tex = null, last = null, dirty = true, lastT = 0, hold = 0, t0 = performance.now();
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   function init() {
     const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
@@ -934,7 +984,7 @@ void main() {
   function draw(now) {
     if (AMAP) { const v = mercView(); if (v.s !== MV.s || v.x !== MV.x || v.y !== MV.y) { MV = v; drawCities(); dirty = true; } }
     if (!U || !last || !cv.width || document.hidden) return;
-    if (!dirty && (still.matches || now - lastT < 33)) return;
+    if (!dirty && (still.matches || now - lastT < 33 || now < hold)) return;
     dirty = false; lastT = now;
     gl.viewport(0, 0, cv.width, cv.height);
     gl.uniform2f(U.u_res, cv.width, cv.height); gl.uniform1f(U.u_px, cv.width / W);
@@ -948,7 +998,9 @@ void main() {
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { dirty = true; });
   const loop = now => { draw(now); requestAnimationFrame(loop); };
   requestAnimationFrame(loop);
-  return {ok: true, resize, field, touch() { dirty = true; }, draw};
+  return {ok: true, resize, field, touch() { dirty = true; }, draw,
+    // Leave the frame budget to a short animation elsewhere, e.g. a ticket flip
+    rest(ms) { hold = performance.now() + ms; }};
 })();
 
 // ---- Apple Maps (website only). /api/mapkit hands out a short-lived token; without one the outline map stays.
@@ -979,42 +1031,66 @@ function loadApple() {
 function passes(r, f) {
   return r.day >= f.minDay && r.sun >= f.minSun && r.temp >= f.minTemp && r.rainPct <= f.maxRain && r.eur <= f.maxCost && r.hrs <= f.maxTime && r.r !== "Home" && r.d >= 150;
 }
+// Text widths for sizing the pins, measured once per string
+const TW = new Map(), tctx = document.createElement("canvas").getContext("2d");
+const FONT = {nm: () => `600 11.5px ${getComputedStyle(document.body).fontFamily}`, st: () => `500 10.5px "Geist Mono", ui-monospace, Menlo, monospace`};
+function textW(str, kind) { const k = kind + str; if (!TW.has(k)) { tctx.font = FONT[kind](); TW.set(k, tctx.measureText(str).width); } return TW.get(k); }
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { TW.clear(); if (S.rows.length && S.home) drawCities(); });
 function drawCities() {
   const rows = S.rows.filter(d => d.d >= 40); if (!rows.length || !S.home) return;
   const hp = screen(S.home.la, S.home.lo);
   const pos = new Map(rows.map(d => [d.i, screen(d.la, d.lo)]));
   const inView = d => { const [x, y] = pos.get(d.i); return x > -20 && x < W + 20 && y > -20 && y < H + 20; };
-  // Greedy label placement: home code and selection first, then by rank; try right, then left, else skip
-  // Only the top ten get a name, plus whatever is selected or hovered; the rest stay quiet dots
-  const pri = d => d.i === S.sel || d.i === S.hot ? -1 : d.ok ? d.rank : 1e3;
-  const shown = rows.filter(d => ((d.ok && d.rank < 10) || d.i === S.sel || d.i === S.hot) && inView(d)).sort((a, b) => pri(a) - pri(b));
+  // The top ten, plus whatever is selected or hovered, get a pin with name, sky, hours of sun and temperature.
+  // Greedy placement: selection first, then by rank; above the spot, else below, else it stays a dot.
+  const lit = d => d.i === S.sel || d.i === S.hot;
+  const pri = d => lit(d) ? -1 : d.ok ? d.rank : 1e3;
+  const shown = rows.filter(d => ((d.ok && d.rank < 10) || lit(d)) && inView(d)).sort((a, b) => pri(a) - pri(b));
   const boxes = [{x: hp[0] - 10, y: hp[1] - 10, w: 20 + 34, h: 20}, ...shown.map(d => { const [x, y] = pos.get(d.i); return {x: x - 6, y: y - 6, w: 12, h: 12, own: d.i}; })];
-  const side = new Map();
+  for (const el of [$("legend"), document.querySelector(".zoom")]) { const r = el.getBoundingClientRect(), o = svg.node().getBoundingClientRect(); if (r.width) boxes.push({x: r.left - o.left - 4, y: r.top - o.top - 4, w: r.width + 8, h: r.height + 8}); }
+  const pin = new Map(), PH = 36;
   for (const d of shown) {
-    const [x, y] = pos.get(d.i), w = short(d.n).length * 7 + 4, h = 15;
-    for (const s of [1, -1]) {
-      const b = {x: s > 0 ? x + 9 : x - 9 - w, y: y - h/2, w, h};
-      if (b.x < 4 || b.x + w > W - 4) continue;
-      if (!boxes.some(o => o.own !== d.i && b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h)) { boxes.push(b); side.set(d.i, s); break; }
+    const [x, y] = pos.get(d.i), hrs = d.sun.toFixed(1) + "h", tmp = Math.round(d.temp) + "°";
+    const w = Math.ceil(Math.max(textW(short(d.n), "nm"), 19 + textW(hrs + " " + tmp, "st"))) + 18;
+    for (const up of [1, 0]) {
+      // Near the edge the sign slides inwards; its tip stays on the spot
+      const b = {x: Math.max(x - w + 12, Math.min(x - 12, Math.max(4, Math.min(W - 4 - w, x - w/2)))), y: up ? y - 8 - PH : y + 8, w, h: PH};
+      if (!lit(d) && (b.x < 4 || b.x + w > W - 4 || b.y < 4 || b.y + PH > H - 4)) continue;
+      if (lit(d) || !boxes.some(o => o.own !== d.i && b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h)) { boxes.push(b); pin.set(d.i, {w, up, hrs, tmp, dx: Math.round(b.x - x)}); break; }
     }
   }
   const sel = gCity.selectAll("g.city").data(rows, d => d.i).join(enter => {
     const e = enter.append("g").attr("class", "city");
     e.append("circle").attr("class", "hit").attr("r", 12);
-    e.append("circle").attr("class", "dot"); e.append("text").attr("dy", "0.35em");
+    e.append("circle").attr("class", "dot"); e.append("circle").attr("class", "core");
+    const pn = e.append("g").attr("class", "pin");
+    pn.append("path").attr("class", "tip"); pn.append("rect").attr("height", PH).attr("rx", 9);
+    pn.append("text").attr("class", "nm").attr("x", 9).attr("y", 15); pn.append("g").attr("class", "ic");
+    const st = pn.append("text").attr("class", "st").attr("x", 26).attr("y", 28.5); st.append("tspan").attr("class", "h"); st.append("tspan").attr("class", "t").attr("dx", 5);
     e.on("click", (ev, d) => select(d.i)).on("mouseenter", (ev, d) => setHot(d.i)).on("mouseleave", () => setHot(null));
     e.append("title");
     return e;
   });
   sel.attr("transform", d => `translate(${pos.get(d.i)})`)
-    .classed("out", d => !d.ok && d.i !== S.sel && d.i !== S.hot).classed("sel", d => d.i === S.sel).classed("hot", d => d.i === S.hot);
-  sel.select(".dot").attr("r", d => d.i === S.sel ? 7.5 : d.i === S.hot ? 7 : d.ok ? (d.rank < 10 ? 6 : 4.5) : 2.5)
-    .style("fill", d => !d.ok && d.i !== S.sel && d.i !== S.hot ? null
-      : S.colorBy === "sun" ? "var(--ink)" : colorFor(S.colorBy, d[S.colorBy === "cost" ? "eur" : S.colorBy]));
-  sel.select("text").attr("x", d => (side.get(d.i) || 1) * 10).attr("text-anchor", d => side.get(d.i) === -1 ? "end" : "start")
-    .text(d => side.has(d.i) ? short(d.n) : "");
+    .classed("out", d => !d.ok && !lit(d)).classed("sel", d => d.i === S.sel).classed("hot", d => d.i === S.hot);
+  // The dot is a little sun gauge: the yellow core grows with the hours of sun
+  const rad = d => d.i === S.sel ? 7.5 : d.i === S.hot ? 7 : d.ok ? (d.rank < 10 ? 6 : 5) : 2.5;
+  sel.select(".dot").attr("r", rad);
+  sel.select(".core").attr("r", d => d.ok || lit(d) ? rad(d) * (0.28 + 0.5 * Math.min(1, d.sun / 11)) : 0)
+    .style("fill", d => S.colorBy === "sun" ? null : colorFor(S.colorBy, d[S.colorBy === "cost" ? "eur" : S.colorBy]));
+  sel.select(".pin").each(function(d) {
+    const q = pin.get(d.i), k = sky(d).k, sig = q ? [q.w, q.up, q.hrs, q.tmp, k, q.dx].join() : "";
+    if (this.__sig === sig) return; this.__sig = sig;
+    const pn = d3.select(this).style("display", q ? null : "none"); if (!q) return;
+    pn.attr("transform", `translate(${q.dx},${q.up ? -8 - PH : 8})`);
+    pn.select("rect").attr("width", q.w);
+    pn.select(".tip").attr("d", q.up ? `M${-q.dx - 5.5},${PH - 1}L${-q.dx},${PH + 6}L${-q.dx + 5.5},${PH - 1}Z` : `M${-q.dx - 5.5},1L${-q.dx},-6L${-q.dx + 5.5},1Z`);
+    pn.select(".nm").text(short(d.n));
+    pn.select(".ic").attr("class", "ic " + k).html(ICON[k].replace("<svg ", '<svg x="8" y="18" width="13" height="13" '));
+    pn.select(".h").text(q.hrs); pn.select(".t").text(q.tmp);
+  });
   sel.select("title").text(d => `${d.n}: ${d.sun.toFixed(1)} h sun, ${d.day.toFixed(1)} h daylight, ${Math.round(d.temp)}°C`);
-  sel.filter(d => d.ok).raise(); sel.filter(d => d.i === S.sel || d.i === S.hot).raise();
+  sel.filter(d => d.ok).raise(); sel.filter(d => pin.has(d.i)).raise(); sel.filter(lit).raise();
   gHome.attr("transform", `translate(${hp})`).select("text").text(S.home.i);
   // Dashed flight path to the selected destination
   const c = rowFor(S.sel);
@@ -1101,6 +1177,7 @@ function stackFlip(box, front, was, dir) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { if (was) was.remove(); return; }
   const now = performance.now(), quick = now - LASTFLIP < 420; LASTFLIP = now;
   const ms = quick ? 260 : 440, r = box.getBoundingClientRect();
+  FX.rest(ms + 80);
   // Far enough down that the whole ticket clears the bottom of the window
   const off = innerHeight - r.top + 40, away = `translate(${dir > 0 ? 18 : -14}px, ${off}px) rotate(${dir > 0 ? 4 : -3}deg)`;
   const settle = "cubic-bezier(.2,.85,.25,1)", run = (el, kf, o) => FLIPS.push(el.animate(kf, {duration: ms, easing: settle, fill: "backwards", ...o}));
@@ -1209,7 +1286,9 @@ function select(id, opts = {}) {
   // Keep focus where the hand is: on the arrow just used, else the close button
   const f = opts.dir && front.querySelector(`.bp-step[data-d="${opts.dir}"]:not(:disabled)`) || front.querySelector(".bp-close");
   f.focus({preventScroll: true});
-  requestAnimationFrame(() => fitRoute(c, box.getBoundingClientRect().top - svg.node().getBoundingClientRect().top));
+  // Flipping through tickets: the map waits until the flip has landed (and for the last one of a quick run), so the two never fight for frames
+  const fit = () => fitRoute(c, box.getBoundingClientRect().top - svg.node().getBoundingClientRect().top);
+  clearTimeout(S.fitT); if (opts.dir) S.fitT = setTimeout(fit, 500); else requestAnimationFrame(fit);
 }
 // Phone: frame home and the destination in the strip of map left above the pass
 function fitRoute(c, bottom) {
@@ -1224,8 +1303,13 @@ function readFilters() {
   $("o-day").textContent = f.minDay + " h"; $("o-sun").textContent = f.minSun + " h/day";
   $("o-temp").textContent = f.minTemp + " °C"; $("o-rain").textContent = f.maxRain >= 100 ? "any" : f.maxRain + "% of days";
   $("o-cost").textContent = f.maxCost >= 1500 ? "any" : "€" + f.maxCost; $("o-time").textContent = f.maxTime >= 16 ? "any" : f.maxTime + " h";
-  $("filterSum").textContent = [`${f.minDay} h+ daylight`, `${f.minSun} h+ sun`, `${f.minTemp}°C+`, f.maxRain >= 100 ? "" : `rain ≤${f.maxRain}%`,
-    f.maxCost >= 1500 ? "" : `≤€${f.maxCost}`, f.maxTime >= 16 ? "" : `≤${f.maxTime} h flight`].filter(Boolean).join(" · ");
+  const chip = (id, on, html) => `<button class="fchip${on ? "" : " any"}" data-f="${id}">${html}</button>`;
+  $("filterSum").innerHTML = [chip("minSun", f.minSun > 0, f.minSun > 0 ? `<b>${f.minSun} h+</b> sun` : "Any sun"),
+    chip("minTemp", f.minTemp > -5, f.minTemp > -5 ? `<b>${f.minTemp}°C+</b>` : "Any warmth"),
+    chip("maxCost", f.maxCost < 1500, f.maxCost < 1500 ? `<b>≤€${f.maxCost}</b> fare` : "Any fare"),
+    chip("maxTime", f.maxTime < 16, f.maxTime < 16 ? `<b>≤${f.maxTime} h</b> flight` : "Any flight time"),
+    chip("maxRain", f.maxRain < 100, f.maxRain < 100 ? `Rain <b>≤${f.maxRain}%</b>` : "Any rain"),
+    chip("minDay", f.minDay > 0, f.minDay > 0 ? `<b>${f.minDay} h+</b> daylight` : "Any daylight")].join("");
   if (f.maxCost >= 1500) f.maxCost = Infinity; if (f.maxTime >= 16) f.maxTime = Infinity;
   return f;
 }
@@ -1333,6 +1417,10 @@ function drawDeps() {
   DEPF.clear();
   const total = fl.length;
   if (S.sunnyOnly) fl = fl.filter(f => f.sun && f.sun.v !== null && f.sun.v >= minSun);
+  // Flaps flip in when the board changes, not on every repaint
+  const sig = fl.map(f => f.no + f.t).join(); ul.classList.toggle("flip", sig !== DEP.sig); DEP.sig = sig;
+  const flap = str => [...str.toUpperCase().slice(0, 20)].map((ch, i) => ch === " " ? '<i class="sp" aria-hidden="true"></i>' : `<i aria-hidden="true" style="--i:${i}">${esc(ch)}</i>`).join("");
+  let row = 0;
   ul.innerHTML = fl.length ? fl.map(f => {
     const [label, cls] = ST[f.st] || [f.st, ""];
     const late = f.r && f.r !== f.t && !["Departed", "EnRoute", "Canceled"].includes(f.st);
@@ -1343,9 +1431,9 @@ function drawDeps() {
     const fk = `f:${f.no}@${f.t}`;
     if (city) DEPF.set(fk, {...f, dest: city, late, status, cls: late && cls === "" ? "warn" : cls});
     const name = (f.tn || (AP.get(f.to) || [])[2] || f.to).replace(/ Island$/, "");
-    return `<li><${tag} class="dr"${city ? ` type="button" data-i="${city}" data-k="${esc(fk)}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
+    return `<li style="--r:${Math.min(row++, 10)}"><${tag} class="dr"${city ? ` type="button" data-i="${city}" data-k="${esc(fk)}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
       <span class="dt"><b>${late ? f.r : f.t}</b>${late ? `<s>${f.t}</s>` : ""}<span class="fn">${esc(f.no)}</span></span>
-      <span class="pl"><span class="nm">${esc(name)}</span><span class="meta"><span class="code">${esc(f.to)}</span> · ${esc(f.al)}${f.sun && f.sun.hrs ? ` · ${f.sun.hrs.toFixed(1)} h` : ""}<span class="mfare">${f.sun && f.sun.eur ? ` · €${f.sun.eur}` : ""}</span></span></span>
+      <span class="pl"><span class="nm flap" role="text" aria-label="${esc(name)}">${flap(name)}</span><span class="meta"><span class="code">${esc(f.to)}</span> · ${esc(f.al)}${f.sun && f.sun.hrs ? ` · ${f.sun.hrs.toFixed(1)} h` : ""}<span class="mfare">${f.sun && f.sun.eur ? ` · €${f.sun.eur}` : ""}</span></span></span>
       <span class="dsun ${s ? (s.est ? "est" : "") + (s.v >= minSun ? " hi" : "") : "est"}" title="${s ? `${s.est ? "About " : ""}${s.v.toFixed(1)} h of sun of ${s.dl.toFixed(1)} h daylight today${s.rain ? ", rain likely" : ""}` : "No weather data nearby"}"><b>${s ? `${s.est ? "~" : ""}${s.v.toFixed(s.v < 10 ? 1 : 0)}` : "–"}</b>${s ? dayBar(s) : ""}</span>
       <span class="tmp ${s ? s.k : ""}">${s ? `${ICON[s.k]}${Math.round(s.t)}°` : "–"}</span>
       <span class="fare" title="Estimated return fare">${f.sun && f.sun.eur ? `€${f.sun.eur}` : "–"}</span>
@@ -1441,6 +1529,10 @@ function setStep(st) {
 }
 $("go").addEventListener("click", () => { S.note = ""; setStep("results"); render(false); zoomNearby(true); $("tripSum").focus({preventScroll: true}); });
 $("tripSum").addEventListener("click", () => { setStep("trip"); if (!isMobile()) $("home").focus(); });
+// A chip opens the filters on its own slider
+$("filterSum").addEventListener("click", e => { const b = e.target.closest(".fchip"); if (!b) return;
+  if ($("filterBox").hidden) $("filterToggle").click();
+  const el = $(b.dataset.f); el.focus({preventScroll: true}); el.closest(".f").scrollIntoView({block: "nearest"}); });
 $("filterToggle").addEventListener("click", e => {
   const open = $("filterBox").hidden; $("filterBox").hidden = !open; $("filterSum").hidden = open;
   e.currentTarget.setAttribute("aria-expanded", open);
