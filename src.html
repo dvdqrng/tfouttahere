@@ -48,12 +48,13 @@ h1 { font: 600 15px/1.1 var(--sans); margin: 0; letter-spacing: -0.005em; white-
 /* Step one: where and when */
 .step-trip { display: flex; flex-direction: column; gap: 16px; padding: 18px 18px 20px; }
 .step-trip .q { font: 600 21px/1.25 var(--sans); letter-spacing: -0.015em; margin: 8px 0 2px; color: var(--sign-ink); text-wrap: balance; }
-.go { height: 44px; border: 0; border-radius: 10px; background: var(--yellow); color: var(--on-yellow); font: 600 14px var(--sans); cursor: pointer; }
-.go:hover { filter: brightness(1.06); }
+.gobtn { height: 44px; border: 0; border-radius: 10px; background: var(--yellow); color: var(--on-yellow); font: 600 14px var(--sans); cursor: pointer; }
+.gobtn:hover { filter: brightness(1.06); }
 .hint { margin: -4px 0 0; font-size: 12px; color: var(--sign-faint); text-wrap: pretty; }
 .hint.warn { color: var(--st-warn); }
 .app[data-step="trip"] #list > :not(.step-trip):not(.grab) { display: none !important; }
 .app:not([data-step="trip"]) .step-trip { display: none; }
+#list[data-tab="deps"] .compare { display: none; }
 /* Step two header: the trip as one tappable line, plus how home compares */
 .tripbar { display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 2px; }
 .tripsum { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 6px 12px 6px 6px; border-radius: 10px; background: var(--sign-2); cursor: pointer; }
@@ -332,7 +333,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
         <label><span class="caps">Depart</span><input type="date" id="dep"></label>
         <label><span class="caps">Return</span><input type="date" id="ret"></label>
       </div>
-      <button class="go" id="go" type="button">Show sunny places <span aria-hidden="true">→</span></button>
+      <button class="gobtn" id="go" type="button">Show sunny places <span aria-hidden="true">→</span></button>
       <p class="hint" id="tripHint" aria-live="polite"></p>
       <datalist id="aplist"></datalist>
     </section>
@@ -871,7 +872,7 @@ function drawDeps() {
     const late = f.r && f.r !== f.t && !["Departed", "EnRoute", "Canceled"].includes(f.st);
     const status = late && !label.startsWith("Cancel") && (label === "Scheduled" || !label) ? "Delayed" : label;
     const s = f.sun && f.sun.v !== null ? f.sun : null, city = s && s.city, tag = city ? "button" : "div";
-    const name = (AP.get(f.to) || [])[2] || f.tn || f.to;
+    const name = (f.tn || (AP.get(f.to) || [])[2] || f.to).replace(/ Island$/, "");
     return `<li><${tag} class="dr"${city ? ` data-city="${city}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
       <span class="dt"><b>${late ? f.r : f.t}</b>${late ? `<s>${f.t}</s>` : ""}<span class="fn">${esc(f.no)}</span></span>
       <span class="pl"><span class="nm">${esc(name)}</span><span class="meta"><span class="code">${esc(f.to)}</span> · ${esc(f.al)}${f.sun && f.sun.hrs ? ` · ${f.sun.hrs.toFixed(1)} h` : ""}<span class="mfare">${f.sun && f.sun.eur ? ` · €${f.sun.eur}` : ""}</span></span></span>
@@ -881,7 +882,7 @@ function drawDeps() {
       <span class="st ${late && cls === "" ? "warn" : cls}">${esc(status)}</span>
     </${tag}></li>`; }).join("")
     : `<li class="empty">${total ? `None of today's ${total} remaining departures heads somewhere with ${minSun} h+ of sun.` : `No more departures from ${esc(S.home.i)} today.`}</li>`;
-  foot.textContent = `${total} departures left today · updated ${new Date(DEP.data.asOf).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"})} · today's forecast at the destination, ~ estimated from nearby stations · fares are rough return estimates`;
+  foot.textContent = `${total} departures left today · updated ${new Date(DEP.data.asOf).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"})} · ~ estimated from nearby weather stations`;
 }
 $("deps").addEventListener("click", e => {
   if (e.target.closest("[data-retry]")) return loadDeps(true);
@@ -890,7 +891,7 @@ $("deps").addEventListener("click", e => {
 });
 $("sunnyOnly").onclick = () => { S.sunnyOnly = !S.sunnyOnly; drawDeps(); };
 function setTab(t) {
-  S.tab = t;
+  S.tab = t; $("list").dataset.tab = t;
   document.querySelectorAll(".tabs [role=tab]").forEach(b => { const on = b.dataset.tab === t; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
   $("pane-places").hidden = t !== "places"; $("pane-deps").hidden = t !== "deps";
   if (t === "deps") loadDeps();
