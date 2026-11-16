@@ -163,26 +163,28 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 .zoom svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
 
 /* Board (places + departures) */
-aside.list { left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(860px, calc(100% - 32px)); max-height: min(64%, calc(100% - 96px)); display: flex; flex-direction: column; overflow: hidden; }
+aside.list { display: flex; flex-direction: column; overflow: hidden; }
 aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
-/* Desktop board has two heights: collapsed shows a few rows so the map stays visible, extended shows the whole board */
+/* Desktop: the board is a sidebar on the left, the ticket opens beside it, the map keeps the rest */
 @media (min-width: 761px) {
-  aside.list { transition: max-height .28s cubic-bezier(.2,.8,.2,1); }
-  .app[data-step="results"][data-sheet="peek"] aside.list { max-height: min(328px, 64%); }
-  .app[data-sheet="peek"] .compare, .app[data-sheet="peek"] .foot { display: none; }
-  /* A handle on top and a labelled toggle make the two heights obvious */
-  .app[data-step="results"] .grab { all: unset; display: block; align-self: center; width: 100%; height: 14px; cursor: pointer; position: relative; flex: none; }
-  .grab::after { content: ""; position: absolute; left: 50%; top: 6px; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: var(--sign-3); }
-  .grab:hover::after { background: var(--sign-muted); }
-  .grab:focus-visible::after { background: var(--yellow); }
-  .app[data-step="results"] .tripbar { padding-top: 2px; }
+  .app { --side: 420px; }
+  aside.list { left: var(--gut-l); top: 16px; bottom: 16px; width: var(--side); }
+  .app[data-step="trip"] aside.list { bottom: auto; }
+  .legend { left: calc(var(--gut-l) + var(--side) + 12px); }
+  .detail { left: calc(var(--gut-l) + var(--side) + 12px); bottom: 16px; overflow: visible; max-height: calc(100% - 32px); }
+  .detail .ticket { max-height: calc(100vh - 64px); }
 }
+/* Narrow desktop: no room beside the sidebar, so the ticket sits on top of it */
+@media (min-width: 761px) and (max-width: 1180px) { .detail { left: calc(var(--gut-l) + 10px); z-index: 5; } }
 button.chev.more { width: auto; padding: 0 10px; gap: 6px; display: flex; align-items: center; font: 500 12px var(--sans); color: var(--sign-muted); background: var(--sign-2); height: 32px; border-radius: 8px; }
 button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
-.listtop { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; }
-.tabs { display: flex; gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 9px; flex: 1; }
-.tabs button { flex: 1; font: 500 12.5px var(--sans); color: var(--sign-muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 8px; cursor: pointer; white-space: nowrap; }
-.tabs button[aria-selected=true] { background: var(--yellow); color: var(--on-yellow); }
+.listtop { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+.tabs { display: flex; gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 10px; flex: 1; position: relative; }
+/* The yellow marker slides between the two tabs */
+.tabs::before { content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc(50% - 3px); border-radius: 8px; background: var(--yellow); transition: transform .22s var(--ease); }
+#list[data-tab="deps"] .tabs::before { transform: translateX(calc(100% + 2px)); }
+.tabs button { flex: 1; position: relative; font: 500 12.5px var(--sans); color: var(--sign-muted); background: transparent; border: 0; border-radius: 8px; padding: 8px; cursor: pointer; white-space: nowrap; }
+.tabs button[aria-selected=true] { color: var(--on-yellow); }
 .tabs .cnt { font: 400 11px var(--mono); opacity: .7; margin-left: 4px; }
 .pane { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .pane[hidden] { display: none; }
@@ -190,32 +192,35 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 /* Filters and list scroll together, so opening filters never squeezes the list away */
 #pane-places { overflow-y: auto; }
 #pane-places .board { overflow: visible; flex: none; }
-.listhead { padding: 0 16px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.listhead select { width: auto; height: 32px; font-size: 12.5px; }
-.ftoggle { display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--sign-2); color: var(--sign-ink); font: 500 12.5px var(--sans); cursor: pointer; }
-.ftoggle svg { width: 15px; height: 15px; color: var(--yellow); }
-.ftoggle .chev { margin-left: 2px; transition: transform .15s; }
-.ftoggle[aria-expanded=true] { background: var(--sign-3); }
-.ftoggle[aria-expanded=true] .chev { transform: rotate(180deg); }
-/* The filters in use, always in view: one chip each, tap to adjust */
-.fsum { display: flex; gap: 6px; margin: -2px 0 10px; padding: 2px 16px; overflow-x: auto; scrollbar-width: none; flex: none; }
+.listhead { padding: 0 16px 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.listhead select { width: auto; height: 30px; font-size: 12.5px; }
+/* Filters: one bar for both tabs. A chip per filter; tapping one opens its slider right below */
+.fsum { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; scrollbar-width: none; flex: none; }
 .fsum::-webkit-scrollbar { display: none; }
-.fchip { flex: none; height: 30px; padding: 0 11px; border: 0; border-radius: 15px; background: var(--sign-2); color: var(--sign-muted); font: 500 11.5px var(--mono); white-space: nowrap; cursor: pointer; }
-.fchip b { font-weight: 500; color: var(--yellow); }
-.fchip.any { color: var(--sign-faint); }
+.fchip { flex: none; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: 16px; background: var(--sign-2); color: var(--sign-muted); font: 500 12px var(--sans); white-space: nowrap; cursor: pointer; }
+.fchip b { font: 600 12px var(--mono); color: var(--yellow); margin-left: 4px; }
+.fchip.any { background: transparent; border-color: rgba(255,255,255,.16); color: var(--sign-faint); }
 .fchip:hover { background: var(--sign-3); color: var(--sign-ink); }
+.fchip[aria-pressed=true] { border-color: var(--yellow); color: var(--sign-ink); background: var(--sign-3); }
+.fchip.reset { background: none; color: var(--yellow); padding: 0 8px; }
 .fchip:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
-.fsum[hidden] { display: none; }
-.filters { display: flex; flex-direction: column; gap: 18px; padding: 6px 16px 16px; flex: none; border-top: 1px solid var(--sign-line); }
-.filters[hidden] { display: none; }
-.filters .group:first-child { padding-top: 8px; }
-@media (min-width: 761px) {
-  .filters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 28px; padding-top: 14px; }
-  .filters .group:first-child { padding-top: 0; }
-  .filters .group:nth-child(4), .filters details { grid-column: 1 / -1; }
-  .filters .group:nth-child(4) { flex-direction: row; align-items: center; gap: 14px; }
-  .filters .group:nth-child(4) .seg { flex: 0 1 360px; }
-}
+.fedit { margin: 0 12px 12px; padding: 12px 14px; border-radius: 12px; background: var(--sign-2); display: flex; flex-direction: column; gap: 8px; flex: none; }
+.fedit[hidden], .fedit input[hidden] { display: none; }
+.fe-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.fe-title { font: 500 12.5px var(--sans); color: var(--sign-muted); }
+.fe-val { font: 600 17px/1 var(--mono); color: var(--yellow); }
+.fe-presets { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.fe-presets button { height: 28px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--sign-3); color: var(--sign-ink); font: 500 11.5px var(--mono); cursor: pointer; }
+.fe-presets button[aria-pressed=true] { background: var(--yellow); color: var(--on-yellow); }
+.fe-presets .done { margin-left: auto; background: none; color: var(--yellow); font: 500 12.5px var(--sans); }
+/* The slider: a fat track that fills with yellow up to the thumb */
+.fedit input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; padding: 0; background: none; border: 0; cursor: pointer; }
+.fedit input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--yellow) var(--p, 50%), rgba(255,255,255,.18) var(--p, 50%)); }
+.fedit input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--yellow) var(--p, 50%), rgba(255,255,255,.18) var(--p, 50%)); }
+.fedit input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.45); transition: transform .12s var(--ease); }
+.fedit input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.45); }
+.fedit input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
+details.about { padding: 10px 16px 14px; }
 .key { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: 11px; color: var(--sign-faint); }
 .key i { display: inline-block; width: 4px; height: 9px; border-radius: 1px; vertical-align: -1px; margin-right: 4px; background: var(--yellow); }
 .key i.t { opacity: .4; } .key i.r { width: 4px; height: 4px; border-radius: 50%; background: var(--rain); vertical-align: 1px; }
@@ -223,10 +228,14 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .cols span.r { text-align: right; }
 .board { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
 .board li + li > * { box-shadow: inset 0 1px 0 var(--sign-line); }
-#results li button, #deps li .dr { all: unset; box-sizing: border-box; width: 100%; padding: 9px 16px; display: grid; gap: 8px; align-items: center; }
+#results li button, #deps li .dr { all: unset; box-sizing: border-box; width: 100%; padding: 11px 16px; display: grid; gap: 8px; align-items: center; }
 #results li button, #deps li button.dr { cursor: pointer; }
-.pcols, #results li button { grid-template-columns: 40px minmax(0, 1fr) 168px 64px 64px; gap: 14px; }
-.dcols, #deps li .dr { grid-template-columns: 60px minmax(0, 1fr) 132px 64px 64px 96px; gap: 14px; }
+.pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 98px 44px 50px; gap: 8px; }
+.dcols, #deps li .dr { grid-template-columns: 56px minmax(0, 1fr) 36px 46px 66px; gap: 8px; }
+.cols .csun::after { content: "Sun"; } .cols .csun span { display: none; }
+.dsun svg, #deps .fare, .dcols .cfare { display: none; }
+#deps li.miss { opacity: .42; }
+.spark { gap: 4px; }
 #results li button:hover, #deps li button.dr:hover { background: var(--sign-2); }
 #results li button.sel { background: color-mix(in srgb, var(--yellow) 14%, transparent); }
 #results li button.hot, #deps li .dr.hot { background: var(--sign-2); }
@@ -263,7 +272,7 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .dsun.est b { color: var(--sign-muted); } .dsun.est .s { opacity: .45; } .dsun.hi b { color: var(--yellow); }
 .dt { display: flex; flex-direction: column; gap: 2px; }
 .dt .fn { font-weight: 400; }
-.mfare { display: none; }
+.mfare { display: inline; }
 .st { font: 500 11.5px var(--sans); text-align: right; color: var(--sign-muted); white-space: nowrap; }
 .st.go { color: var(--st-go); } .st.warn { color: var(--st-warn); } .st.bad { color: var(--st-bad); } .st.dim { color: var(--sign-faint); }
 .st.go::before, .st.warn::before, .st.bad::before { display: inline-block; width: 1.1em; font-size: .85em; }
@@ -273,8 +282,9 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .foot { padding: 8px 16px 12px; font-size: 11px; color: var(--sign-faint); border-top: 1px solid var(--sign-line); }
 
 /* Destination card: a boarding pass */
-.app[data-detail="1"] aside.list { display: none; }
-.detail { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: 400px; max-height: min(64%, calc(100% - 32px)); overflow-y: auto; overscroll-behavior: contain; max-width: calc(100% - 32px); filter: drop-shadow(0 10px 22px rgba(16,24,40,.2)) drop-shadow(0 1px 2px rgba(16,24,40,.08)); }
+.detail { position: absolute; z-index: 3; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: 400px; max-width: calc(100% - 32px); }
+/* The stack's shadow is a plain plate under it, so flipping tickets never has to redraw a blurred shadow */
+.detail::before { content: ""; position: absolute; inset: 0; border-radius: 16px; box-shadow: 0 14px 34px rgba(8,12,20,.34), 0 2px 5px rgba(8,12,20,.2); pointer-events: none; }
 /* One ticket: a yellow header across the full width, then the stub and the details, split by a perforation */
 .ticket { position: relative; z-index: 1; display: flex; flex-direction: column; max-height: min(66vh, calc(100vh - 40px)); }
 .bp-body { overflow-y: auto; overscroll-behavior: contain; }
@@ -353,46 +363,33 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
   .step-trip .brand { display: none; }
   .step-trip .q { font-size: 19px; margin-top: 0; }
   .tripbar { padding: 0 12px 2px; }
-  .compare .fcnote { display: none; }
-  .app[data-sheet="peek"] .compare { display: none; }
-  .app[data-step="trip"] aside.list { height: auto; }
+  .compare { display: none; }
   .app[data-step="trip"] .zoom { display: none; }
   .legend { padding: 7px 10px; gap: 5px; }
   .legend .sw { grid-template-columns: repeat(6, 34px); }
   .app[data-sheet="full"] .legend, .app[data-detail="1"] .legend, .app[data-step="trip"] .legend { display: none; }
-  /* Board as a bottom sheet: peek shows a few rows, full covers the map below the trip bar */
-  aside.list { left: 0; right: 0; bottom: 0; top: auto; width: auto; transform: none; max-height: none; border-radius: 18px 18px 0 0; border-bottom: 0;
-    height: var(--peek); transition: height .28s cubic-bezier(.2,.8,.2,1); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
-  .app[data-sheet="full"] aside.list { height: calc(100% - var(--top)); }
+  /* Board as a bottom sheet. It is always full height and only slides (a transform), so it follows the finger and never re-lays-out */
+  aside.list { left: 0; right: 0; top: var(--top); bottom: 0; width: auto; border-radius: 18px 18px 0 0; border-bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box;
+    transform: translateY(calc(100% - var(--peek))); transition: transform .34s cubic-bezier(.2,.9,.2,1); will-change: transform; }
+  .app[data-sheet="full"] aside.list { transform: none; }
+  .app[data-step="trip"] aside.list { top: auto; transform: none; }
   .app[data-detail="1"] aside.list { display: none; }
-  .listtop { flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px 10px; }
-  .grab, .tripbar { touch-action: none; }
+  .listtop { padding: 8px 12px 10px; }
+  .grab, .tripbar, .listtop { touch-action: none; }
   .grab { all: unset; display: block; align-self: center; width: 100%; height: 22px; cursor: pointer; position: relative; }
   .grab::after { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--sign-3); }
   .grab:focus-visible::after { background: var(--yellow); }
-  .tabs button { padding: 8px 6px; }
-  #listToggle { display: none; }
-  .app[data-sheet="peek"] .listhead, .app[data-sheet="peek"] .cols, .app[data-sheet="peek"] .dephead, .app[data-sheet="peek"] .foot { display: none; }
+  .tabs button { padding: 9px 6px; }
   .app[data-sheet="peek"] .board { overflow: hidden; }
-  .app[data-sheet="peek"] .filters, .app[data-sheet="peek"] .foot.key { display: none; }
-  .app[data-sheet="peek"] .fsum { margin-top: 0; }
   .app[data-sheet="peek"] #pane-places { overflow: hidden; }
-  .app[data-sheet="peek"] .panelbody { touch-action: none; }
-  .pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 98px 44px 50px; gap: 8px; }
-  .spark { gap: 4px; }
-  .dcols, #deps li .dr { grid-template-columns: 56px minmax(0, 1fr) 36px 46px 66px; gap: 8px; }
-  .dt .fn { font-size: 11px; overflow: visible; }
-  .cols .csun::after { content: "Sun"; } .cols .csun span { display: none; }
-  .dsun svg, #deps .fare, .dcols .cfare { display: none; }
-  .mfare { display: inline; }
-  #results li button, #deps li .dr { padding: 11px 16px; }
+  .app[data-sheet="peek"] .panelbody, .app[data-sheet="peek"] .fbar { touch-action: none; }
   /* Map controls sit just above the peeking sheet; pinch zooms */
   .zoom { top: auto; bottom: calc(var(--peek) + 12px); }
   #zin, #zout { display: none; }
   .app[data-sheet="full"] .zoom { display: none; }
   /* Boarding pass as its own sheet */
-  .detail { left: 0; right: 0; bottom: 0; width: auto; max-width: none; transform: none; z-index: 5;
-    max-height: none; overflow: visible; }
+  .detail { left: 0; right: 0; bottom: 0; width: auto; max-width: none; z-index: 5; }
+  .detail::before { border-radius: 18px 18px 0 0; }
   .ticket { max-height: min(66vh, calc(100vh - 56px)); }
   .shade { border-radius: 18px 18px 0 0; }
   .bp-head, .bp-top { touch-action: none; }
@@ -401,24 +398,6 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
   .app[data-detail="1"] .zoom { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); display: none; }
   .bp-head { border-radius: 18px 18px 0 0; }
   .bp-bot { border-radius: 0; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
-}
-/* Desktop: the pass is a landscape ticket the width of the board, stub on the left, tear line, forecast on the right */
-@media (min-width: 761px) {
-  .detail { width: min(860px, calc(100% - 32px)); max-height: calc(100% - 32px); overflow: visible; }
-  /* Notches cut the top and bottom edge at the perforation, header included */
-  .ticket { --cut: 40%; max-height: calc(100vh - 48px);
-    -webkit-mask: radial-gradient(circle 10px at var(--cut) 0, #0000 97%, #000) 0 0 / 100% 51% no-repeat, radial-gradient(circle 10px at var(--cut) 100%, #0000 97%, #000) 0 100% / 100% 51% no-repeat;
-            mask: radial-gradient(circle 10px at var(--cut) 0, #0000 97%, #000) 0 0 / 100% 51% no-repeat, radial-gradient(circle 10px at var(--cut) 100%, #0000 97%, #000) 0 100% / 100% 51% no-repeat; }
-  .ticket::after { content: ""; position: absolute; left: calc(var(--cut) - .75px); top: 14px; bottom: 14px; width: 1.5px; pointer-events: none;
-    background: repeating-linear-gradient(180deg, rgba(18,18,18,.2) 0 6px, transparent 6px 11px); }
-  .bp-body { flex-direction: row; flex: 1; overflow: visible; min-height: 0; }
-  .bp-top, .bp-bot { -webkit-mask: none; mask: none; }
-  .bp-top { flex: 0 0 var(--cut); min-width: 0; border-radius: 0 0 0 16px; padding: 22px 24px 20px; justify-content: space-between; gap: 22px; }
-  .bp-bot { flex: 1; min-width: 0; border-radius: 0 0 16px 0; padding: 18px 22px 18px 26px; overflow-y: auto; }
-  .bp-bot::before { display: none; }
-  .route .iata { font-size: 44px; }
-  .route .city { font-size: 12.5px; }
-  .fcst div { width: auto; flex: 1 0 44px; }
 }
 @media (max-width: 380px) {
   .spark svg { display: none; }
@@ -441,7 +420,14 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 #pane-deps .dephead > span { font-size: 11px; } #pane-deps .dephead > span::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--st-go); margin-right: 9px; }
 #pane-deps .dephead .depnote { text-transform: none; letter-spacing: 0; font-family: var(--sans); }
 #pane-deps .foot { font-size: 10.5px; }
-@media (max-width: 760px) { #deps .flap i { width: 12px; height: 20px; font-size: 11px; } #deps .flap i.sp { width: 4px; } #deps .flap { gap: 1.5px; } }
+#deps .flap i { width: 12px; height: 20px; font-size: 11px; } #deps .flap i.sp { width: 4px; } #deps .flap { gap: 1.5px; }
+
+/* Motion: short, eased out, and only ever opacity or transform */
+:root { --ease: cubic-bezier(.2,0,0,1); }
+.fchip, .chip, .tabs button, .tripsum, .gobtn, .iconbtn, .zoom button, .bp-step, .pickrow button, .fe-presets button, #results li button, #deps li .dr { transition: background-color .12s var(--ease), color .12s var(--ease), border-color .12s var(--ease), transform .12s var(--ease); }
+.fchip:active, .chip:active, .gobtn:active, .iconbtn:active, .zoom button:active, .bp-step:active, .pickrow button:active, .fe-presets button:active, .tripsum:active { transform: scale(.96); }
+.pane:not([hidden]), .fedit:not([hidden]) { animation: panein .16s var(--ease); }
+@keyframes panein { from { opacity: 0; transform: translateY(5px); } }
 
 /* Liquid glass: the panel and the map controls are tinted glass over the map, with a bright rim where the light catches */
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
@@ -495,14 +481,25 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
     <div class="listtop" id="listtop">
       <div class="tabs" role="tablist" aria-label="Board">
         <button role="tab" id="tab-places" data-tab="places" aria-selected="true" aria-controls="pane-places">Sunny places<span class="cnt" id="count"></span></button>
-        <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today</button>
+        <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today<span class="cnt" id="depcount"></span></button>
       </div>
-      <button class="chev more" id="listToggle" aria-expanded="false">More <span aria-hidden="true">▴</span></button>
+    </div>
+    <div class="fbar" id="fbar">
+      <div class="fsum" id="filterSum" role="group" aria-label="Filters"></div>
+      <div class="fedit" id="fedit" hidden>
+        <div class="fe-top"><span class="fe-title" id="feTitle"></span><output class="fe-val" id="feVal"></output></div>
+        <input type="range" id="minSun" min="0" max="12" step="0.5" value="6" aria-label="Hours of sun a day, at least" hidden>
+        <input type="range" id="minTemp" min="-5" max="35" step="1" value="16" aria-label="Daytime high in °C, at least" hidden>
+        <input type="range" id="maxCost" min="100" max="1500" step="25" value="600" aria-label="Return fare in euros, up to" hidden>
+        <input type="range" id="maxTime" min="2" max="16" step="0.5" value="8" aria-label="Flight time in hours, up to" hidden>
+        <input type="range" id="maxRain" min="0" max="100" step="10" value="40" aria-label="Share of rainy days in percent, at most" hidden>
+        <input type="range" id="minDay" min="0" max="14" step="0.5" value="9" aria-label="Hours of daylight, at least" hidden>
+        <div class="fe-presets" id="fePresets"></div>
+      </div>
     </div>
     <div class="panelbody">
       <div class="pane" id="pane-places" role="tabpanel" aria-labelledby="tab-places">
-        <div class="listhead">
-          <button class="ftoggle" id="filterToggle" aria-expanded="false" aria-controls="filterBox"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.5"/><circle cx="5.5" cy="11.5" r="1.5"/></svg>Filters<span class="chev" aria-hidden="true">▼</span></button>
+        <div class="listhead"><span class="caps">Sorted by</span>
           <select id="sort" aria-label="Sort destinations">
             <option value="sun">Most sunshine</option>
             <option value="value">Most sun per euro</option>
@@ -511,50 +508,17 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
             <option value="temp">Warmest</option>
           </select>
         </div>
-        <div class="fsum" id="filterSum" role="group" aria-label="Filters in use"></div>
-        <div class="filters" id="filterBox" hidden>
-    <div class="group">
-      <h2 class="caps">Light</h2>
-      <label class="f"><span class="row">Daylight at least <output id="o-day"></output></span>
-        <input type="range" id="minDay" min="0" max="14" step="0.5" value="9"></label>
-      <label class="f"><span class="row">Sunshine at least <output id="o-sun"></output></span>
-        <input type="range" id="minSun" min="0" max="12" step="0.5" value="6"></label>
-    </div>
-    <div class="group">
-      <h2 class="caps">Weather</h2>
-      <label class="f"><span class="row">Daytime high at least <output id="o-temp"></output></span>
-        <input type="range" id="minTemp" min="-5" max="35" step="1" value="16"></label>
-      <label class="f"><span class="row">Rain on at most <output id="o-rain"></output></span>
-        <input type="range" id="maxRain" min="0" max="100" step="10" value="40"></label>
-    </div>
-    <div class="group">
-      <h2 class="caps">Flight</h2>
-      <label class="f"><span class="row">Return fare up to <output id="o-cost"></output></span>
-        <input type="range" id="maxCost" min="100" max="1500" step="25" value="600"></label>
-      <label class="f"><span class="row">Flight time up to <output id="o-time"></output></span>
-        <input type="range" id="maxTime" min="2" max="16" step="0.5" value="8"></label>
-    </div>
-    <div class="group">
-      <h2 class="caps">Colour the dots by</h2>
-      <div class="seg" id="colorBy" role="group" aria-label="Colour the dots by">
-        <button data-k="sun" aria-pressed="true">Sun</button>
-        <button data-k="day" aria-pressed="false">Daylight</button>
-        <button data-k="temp" aria-pressed="false">Warmth</button>
-        <button data-k="cost" aria-pressed="false">Fare</button>
-      </div>
-    </div>
-    <details class="about"><summary>About the numbers</summary>
-    <p class="note"><b>Weather</b> uses the 16-day forecast (Open-Meteo) for any trip days it covers. Days further out use the typical weather for that time of year from 2022–2025 records (ERA5). <b>Daylight</b> is sunrise to sunset for your exact dates. <b>Sunshine</b> is hours of direct sun per day. It reads about 1 h high in cloudy places, so compare places with each other rather than trusting the absolute number.</p>
-    <p class="note"><b>Fares</b> are rough estimates from distance, season and how many budget airlines fly the route. Check live prices before you plan around them.</p>
-    <p class="note"><b>Departures</b> are live schedules from AeroDataBox. Sun at the destination is today's forecast; <b>~</b> means it's estimated from nearby weather stations.</p>
-    </details>
-        </div>
         <div class="cols pcols caps" aria-hidden="true"><span>Code</span><span>Destination</span><span class="csun"><span>Sun a day</span></span><span class="r">High</span><span class="r">Fare</span></div>
         <ul class="board" id="results"></ul>
         <div class="foot key"><span><i></i>Forecast sun</span><span><i class="t"></i>Typical sun</span><span><i class="r"></i>Rain day</span><span>Grey: daylight</span></div>
+        <details class="about"><summary>About the numbers</summary>
+        <p class="note"><b>Weather</b> uses the 16-day forecast (Open-Meteo) for any trip days it covers. Days further out use the typical weather for that time of year from 2022–2025 records (ERA5). <b>Daylight</b> is sunrise to sunset for your exact dates. <b>Sunshine</b> is hours of direct sun per day. It reads about 1 h high in cloudy places, so compare places with each other rather than trusting the absolute number.</p>
+        <p class="note"><b>Fares</b> are rough estimates from distance, season and how many budget airlines fly the route. Check live prices before you plan around them.</p>
+        <p class="note"><b>Departures</b> are live schedules from AeroDataBox. Sun at the destination is today's forecast; <b>~</b> means it's estimated from nearby weather stations. The filters apply to today's weather there.</p>
+        </details>
       </div>
       <div class="pane" id="pane-deps" role="tabpanel" aria-labelledby="tab-deps" hidden>
-        <div class="dephead"><span id="depfrom"></span><button class="chip" id="sunnyOnly" aria-pressed="false"></button></div>
+        <div class="dephead"><span id="depfrom"></span><button class="chip" id="sunnyOnly" aria-pressed="true"></button></div>
         <div class="cols dcols caps" aria-hidden="true"><span>Time</span><span>Destination</span><span class="r csun"><span>Sun today</span></span><span class="r">High</span><span class="r cfare">Fare</span><span class="r">Status</span></div>
         <ul class="board" id="deps"></ul>
         <div class="foot" id="depfoot"></div>
@@ -593,7 +557,7 @@ const sky = r => r.rainPct >= 35 ? {k: "rain", t: "showery"} : r.cloud >= 62 ? {
   : r.cloud >= 38 ? {k: "partly", t: "partly cloudy"} : {k: "clear", t: "mostly sunny"};
 // Sun hours per trip day as tiny bars over a daylight track; solid = forecast, pale = typical, dot = rain
 function spark(r) {
-  const W = isMobile() ? 60 : 120, H = 16, n = r.series.length, g = n > 12 ? 1.5 : 2.5, bw = Math.max(1.2, (W - g * (n - 1)) / n), y = v => Math.min(v, 14) / 14 * H;
+  const W = 60, H = 16, n = r.series.length, g = n > 12 ? 1.5 : 2.5, bw = Math.max(1.2, (W - g * (n - 1)) / n), y = v => Math.min(v, 14) / 14 * H;
   return `<svg width="${W}" height="${H + 6}" viewBox="0 0 ${W} ${H + 6}" aria-hidden="true">${r.series.map((x, i) => { const X = (i * (bw + g)).toFixed(1);
     return `<rect class="dl" x="${X}" y="${(H - y(x.dl)).toFixed(1)}" width="${bw.toFixed(1)}" height="${y(x.dl).toFixed(1)}" rx="1"/>` +
       `<rect class="s${x.fc ? "" : " t"}" x="${X}" y="${(H - y(Math.min(x.sun, x.dl))).toFixed(1)}" width="${bw.toFixed(1)}" height="${y(Math.min(x.sun, x.dl)).toFixed(1)}" rx="1"/>` +
@@ -686,7 +650,7 @@ const TODAY_BY = new Map(TODAY.map(x => [x.c.i, x]));
 const rainText = r => Math.round(r.rainDays) < 1 ? "no rain" : `${Math.round(r.rainDays)} rainy day${Math.round(r.rainDays) === 1 ? "" : "s"}`;
 
 // ---- State
-const S = {colorBy: "sun", sel: null, hot: null, rows: [], extra: new Map(), tab: "places", home: null, note: "", sunnyOnly: false, ready: false};
+const S = {colorBy: "sun", sel: null, hot: null, rows: [], extra: new Map(), tab: "places", home: null, note: "", sunnyOnly: true, fed: null, ready: false};
 // Any airport can be a destination: stations use their own data, other airports blend the stations around them
 function synthCity(code) {
   const a = AP.get(code); if (!a) return null;
@@ -802,10 +766,6 @@ function screen(la, lo) {
   if (AMAP) x += MV.s * Math.round((W/2 - x) / MV.s); // Apple's map wraps: use the copy of the world that is on screen
   return [x, MV.y + MV.s * mercY(la)];
 }
-// Desktop: the space left for zooming to places depends on how tall the board is
-function freeBottom() {
-  if (FREE && !isMobile()) FREE.y1 = H - ($("app").dataset.sheet === "full" ? H * 0.64 : Math.min(328, H * 0.64)) - 28;
-}
 function layout() {
   const r = svg.node().getBoundingClientRect(), was = S.zoomed && !AMAP && W ? {v: mercView(), W, H} : null;
   W = r.width; H = r.height;
@@ -814,11 +774,10 @@ function layout() {
   // Fit the world into the open space between the floating panels
   const top = 8;
   const mobile = isMobile();
-  const x0 = 8, x1 = mobile ? W - 8 : W - 64;
-  // Desktop: the board sits bottom centre, so the map frames the space above about half the screen
-  FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H * 0.34 - 12};
+  // Phone: the map shows above the peeking sheet. Desktop: to the right of the sidebar.
+  const x0 = mobile ? 8 : $("list").getBoundingClientRect().right - r.left + 16, x1 = mobile ? W - 8 : W - 64;
+  FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H - 24};
   proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "MultiPoint", coordinates: [[-179.9, -56], [179.9, 75]]});
-  freeBottom();
   if (!AMAP) {
     gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
     gGrat.selectAll("path.grat").data([d3.geoGraticule10()]).join("path").attr("class", "grat").attr("d", path);
@@ -843,7 +802,7 @@ function appleGo(v, ms) {
   v = {...v, s: Math.max(W * 0.8, v.s)};
   if (!ms || matchMedia("(prefers-reduced-motion: reduce)").matches) return appleSet(v);
   const a = mercView(), i = d3.interpolateZoom([(W/2 - a.x) / a.s, (H/2 - a.y) / a.s, W / a.s], [(W/2 - v.x) / v.s, (H/2 - v.y) / v.s, W / v.s]);
-  const dur = Math.max(ms, Math.min(1500, i.duration * 0.85)), t0 = performance.now();
+  const dur = Math.max(ms, Math.min(1100, i.duration * 0.7)), t0 = performance.now();
   const tick = now => { const t = Math.min(1, (now - t0) / dur), [cx, cy, w] = i(d3.easeCubicInOut(t)), k = W / w;
     appleSet({s: k, x: W/2 - cx * k, y: H/2 - cy * k}); CAM = t < 1 ? requestAnimationFrame(tick) : 0; };
   CAM = requestAnimationFrame(tick);
@@ -1043,7 +1002,7 @@ function loadApple() {
     AMAP = map; $("mapwrap").classList.add("apple");
     layout();
     const c = rowFor(S.sel);
-    if (c && !$("detail").hidden) fitRoute(c, $("detail").getBoundingClientRect().top - svg.node().getBoundingClientRect().top); else zoomNearby(false);
+    if (c && !$("detail").hidden) fitRoute(c); else zoomNearby(false);
   }).catch(() => {});
 }
 
@@ -1130,7 +1089,7 @@ function legend() {
 
 // ---- Destination card (boarding pass)
 function monthChart(c) {
-  const w = isMobile() ? 300 : 460, h = 46, pad = 22, bw = (w - pad) / 12, max = 12;
+  const w = 300, h = 46, pad = 22, bw = (w - pad) / 12, max = 12;
   const trip = tripDays(); const inTrip = new Set(trip.days.map(d => d.getUTCMonth()));
   return `<svg viewBox="0 0 ${w} ${h + 14}" aria-label="Typical sunshine hours per day by month">
     ${[4, 8].map(v => `<line x1="0" x2="${w - pad}" y1="${h - v/max*h}" y2="${h - v/max*h}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${w}" y="${h - v/max*h + 3}" text-anchor="end">${v}h</text>`).join("")}
@@ -1196,7 +1155,7 @@ function stackSettle() { FLIPS.forEach(a => a.finish()); FLIPS = []; document.qu
 function stackFlip(box, front, was, dir) {
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) { if (was) was.remove(); return; }
   const now = performance.now(), quick = now - LASTFLIP < 420; LASTFLIP = now;
-  const ms = quick ? 260 : 440, r = box.getBoundingClientRect();
+  const ms = quick ? 220 : 320, r = box.getBoundingClientRect();
   // Far enough down that the whole ticket clears the bottom of the window
   const off = innerHeight - r.top + 40, away = `translate(${dir > 0 ? 18 : -14}px, ${off}px) rotate(${dir > 0 ? 4 : -3}deg)`;
   const settle = "cubic-bezier(.2,.85,.25,1)", run = (el, kf, o) => FLIPS.push(el.animate(kf, {duration: ms, easing: settle, fill: "backwards", ...o}));
@@ -1281,7 +1240,7 @@ function select(id, opts = {}) {
     // The ticket sinks away while the board comes back underneath
     if (!box.hidden && !S.closing && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
       box.style.pointerEvents = "none";
-      S.closing = box.animate([{translate: "0 0", opacity: 1}, {translate: "0 24px", opacity: 0}], {duration: 200, easing: "cubic-bezier(.4,0,.9,.6)"});
+      S.closing = box.animate([{translate: "0 0", opacity: 1}, {translate: "0 16px", opacity: 0}], {duration: 140, easing: "cubic-bezier(.4,0,.9,.6)"});
       S.closing.onfinish = () => { S.closing = null; if (!S.sel) box.hidden = true; box.style.pointerEvents = ""; };
     } else if (!S.closing) box.hidden = true;
     render(false);
@@ -1310,40 +1269,62 @@ function select(id, opts = {}) {
     setTimeout(() => { b.textContent = "Copy link"; }, 2000); };
   const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (S.closing) { S.closing.cancel(); S.closing = null; }
-  if (box.hidden && !still) box.animate([{translate: "0 28px", opacity: 0}, {translate: "0 0", opacity: 1}], {duration: 360, easing: "cubic-bezier(.2,.8,.2,1)"});
+  if (box.hidden && !still) box.animate([{translate: "0 18px", opacity: 0}, {translate: "0 0", opacity: 1}], {duration: 240, easing: "cubic-bezier(.2,0,0,1)"});
   box.style.pointerEvents = ""; box.hidden = false; render(false);
   if (dir) stackFlip(box, front, was, dir);
   // Keep focus where the hand is: on the arrow just used, else the close button
   const f = opts.dir && front.querySelector(`.bp-step[data-d="${opts.dir}"]:not(:disabled)`) || front.querySelector(".bp-close");
   f.focus({preventScroll: true});
   // Flipping through tickets: the map glides along with the flip; a quick run of flips only moves it once
-  const fit = () => fitRoute(c, box.getBoundingClientRect().top - svg.node().getBoundingClientRect().top);
+  const fit = () => fitRoute(c);
   clearTimeout(S.fitT); if (opts.dir) S.fitT = setTimeout(fit, 90); else requestAnimationFrame(fit);
 }
 // Phone: frame home and the destination in the strip of map left above the pass
-function fitRoute(c, bottom) {
-  if (!FREE || bottom - FREE.y0 < 110) return;
+function fitRoute(c) {
+  if (!FREE) return;
+  const d = $("detail").getBoundingClientRect(), o = svg.node().getBoundingClientRect();
   // Leave room for the pin above each end, the legend and the ticket's shadow
-  const h = bottom - FREE.y0, top = Math.min(84, h * 0.3), side = Math.min(90, W * 0.16);
-  frame([S.home, c], {x0: side, y0: FREE.y0 + top, x1: W - side, y1: bottom - Math.min(44, h * 0.15)}, 900);
+  if (isMobile()) { const bottom = d.top - o.top, h = bottom - FREE.y0, side = Math.min(90, W * 0.16); if (h < 110) return;
+    return frame([S.home, c], {x0: side, y0: FREE.y0 + Math.min(84, h * 0.3), x1: W - side, y1: bottom - Math.min(44, h * 0.15)}, 650); }
+  const x0 = Math.max(FREE.x0, d.right - o.left + 16) + 70;
+  if (W - 100 - x0 < 160) return;
+  frame([S.home, c], {x0, y0: FREE.y0 + 96, x1: W - 100, y1: H - 70}, 650);
 }
 
 // ---- Main render
+// One definition per filter: its slider id, how it reads, and a few one-tap values
+const FDEF = {
+  minSun: {t: "Sun a day, at least", any: 0, fmt: v => v + " h", chip: v => `Sun<b>${v} h+</b>`, none: "Any sun", presets: [0, 4, 6, 8, 10]},
+  minTemp: {t: "Daytime high, at least", any: -5, fmt: v => v + "°C", chip: v => `Warm<b>${v}°+</b>`, none: "Any warmth", presets: [-5, 10, 16, 22, 28]},
+  maxCost: {t: "Return fare, up to", any: 1500, fmt: v => "€" + v, chip: v => `Fare<b>≤€${v}</b>`, none: "Any fare", presets: [1500, 800, 600, 400, 250]},
+  maxTime: {t: "Flight time, up to", any: 16, fmt: v => v + " h", chip: v => `Flight<b>≤${v} h</b>`, none: "Any flight time", presets: [16, 12, 8, 5, 3]},
+  maxRain: {t: "Rainy days, at most", any: 100, fmt: v => v + "%", chip: v => `Rain<b>≤${v}%</b>`, none: "Any rain", presets: [100, 60, 40, 20, 0]},
+  minDay: {t: "Daylight, at least", any: 0, fmt: v => v + " h", chip: v => `Daylight<b>${v} h+</b>`, none: "Any daylight", presets: [0, 8, 10, 12]},
+};
+const FIDS = Object.keys(FDEF);
 function readFilters() {
-  const f = {minDay: +$("minDay").value, minSun: +$("minSun").value, minTemp: +$("minTemp").value,
-    maxRain: +$("maxRain").value, maxCost: +$("maxCost").value, maxTime: +$("maxTime").value};
-  $("o-day").textContent = f.minDay + " h"; $("o-sun").textContent = f.minSun + " h/day";
-  $("o-temp").textContent = f.minTemp + " °C"; $("o-rain").textContent = f.maxRain >= 100 ? "any" : f.maxRain + "% of days";
-  $("o-cost").textContent = f.maxCost >= 1500 ? "any" : "€" + f.maxCost; $("o-time").textContent = f.maxTime >= 16 ? "any" : f.maxTime + " h";
-  const chip = (id, on, html) => `<button class="fchip${on ? "" : " any"}" data-f="${id}">${html}</button>`;
-  $("filterSum").innerHTML = [chip("minSun", f.minSun > 0, f.minSun > 0 ? `<b>${f.minSun} h+</b> sun` : "Any sun"),
-    chip("minTemp", f.minTemp > -5, f.minTemp > -5 ? `<b>${f.minTemp}°C+</b>` : "Any warmth"),
-    chip("maxCost", f.maxCost < 1500, f.maxCost < 1500 ? `<b>≤€${f.maxCost}</b> fare` : "Any fare"),
-    chip("maxTime", f.maxTime < 16, f.maxTime < 16 ? `<b>≤${f.maxTime} h</b> flight` : "Any flight time"),
-    chip("maxRain", f.maxRain < 100, f.maxRain < 100 ? `Rain <b>≤${f.maxRain}%</b>` : "Any rain"),
-    chip("minDay", f.minDay > 0, f.minDay > 0 ? `<b>${f.minDay} h+</b> daylight` : "Any daylight")].join("");
+  const f = {}; FIDS.forEach(id => f[id] = +$(id).value);
+  const changed = FIDS.some(id => $(id).value !== $(id).defaultValue);
+  const html = FIDS.map(id => { const d = FDEF[id], on = f[id] !== d.any;
+    return `<button class="fchip${on ? "" : " any"}" data-f="${id}" aria-pressed="${S.fed === id}">${on ? d.chip(f[id]) : d.none}</button>`; }).join("") +
+    (changed ? '<button class="fchip reset" data-reset>Reset</button>' : "");
+  if (html !== S.chipHTML) { S.chipHTML = html; $("filterSum").innerHTML = html; }
+  if (S.fed) { const d = FDEF[S.fed], el = $(S.fed), v = f[S.fed];
+    $("feVal").textContent = v === d.any ? "Any" : d.fmt(v);
+    el.style.setProperty("--p", ((v - el.min) / (el.max - el.min) * 100).toFixed(1) + "%");
+    [...$("fePresets").querySelectorAll("[data-v]")].forEach(b => b.setAttribute("aria-pressed", +b.dataset.v === v)); }
   if (f.maxCost >= 1500) f.maxCost = Infinity; if (f.maxTime >= 16) f.maxTime = Infinity;
   return f;
+}
+// Open one filter's slider under the chips (or close it with null)
+function editFilter(id) {
+  S.fed = id && id !== S.fed ? id : null;
+  $("fedit").hidden = !S.fed; FIDS.forEach(k => $(k).hidden = k !== S.fed);
+  if (S.fed) { const d = FDEF[S.fed];
+    $("feTitle").textContent = d.t;
+    $("fePresets").innerHTML = d.presets.map(v => `<button type="button" data-v="${v}">${v === d.any ? "Any" : d.fmt(v)}</button>`).join("") + '<button type="button" class="done" data-done>Done</button>';
+    if (isMobile()) setSheet("full"); }
+  render(false);
 }
 function render(recompute = true) {
   const trip = tripDays(), f = readFilters();
@@ -1384,7 +1365,7 @@ function render(recompute = true) {
   $("picks").innerHTML = ok.length ? `<span class="caps">Sunniest for these dates</span><div class="pickrow">${ok.slice(0, 3).map(r =>
     `<button type="button" data-pick="${r.i}"><span class="code">${r.i}</span>${esc(short(r.n))}<b>${r.sun.toFixed(1)} h</b></button>`).join("")}</div>` : "";
   drawCities(); legend();
-  if (S.tab === "deps") drawDeps();
+  if (S.tab === "deps" || DEP.data) drawDeps();
   saveURL();
 }
 function fcLine() {
@@ -1426,16 +1407,21 @@ function destSun(code) {
     city: near[1] < 80 ? near[0].c.i : null, ...f};
 }
 // Today's sun as one bar over the day's daylight
-const dayBar = s => { const w = isMobile() ? 44 : 80, x = v => Math.min(v, 14) / 14 * w;
+const dayBar = s => { const w = 44, x = v => Math.min(v, 14) / 14 * w;
   return `<svg width="${w}" height="10" viewBox="0 0 ${w} 10" aria-hidden="true"><rect class="dl" y="2" width="${x(s.dl).toFixed(1)}" height="6" rx="2"/><rect class="s" y="2" width="${x(s.v).toFixed(1)}" height="6" rx="2"/>${s.rain ? `<circle class="rn" cx="${(x(s.dl) - 2).toFixed(1)}" cy="5" r="1.6"/>` : ""}</svg>`; };
 function drawDeps() {
-  const minSun = +$("minSun").value;
-  $("sunnyOnly").textContent = `${minSun} h+ sun only`; $("sunnyOnly").setAttribute("aria-pressed", S.sunnyOnly);
+  const F = {}; FIDS.forEach(id => F[id] = +$(id).value);
+  // The same filters as the places, read against today's weather at the destination
+  const fits = f => { const s = f.sun; if (!s || s.v == null) return false;
+    return s.v >= F.minSun && s.dl >= F.minDay && (s.t == null || s.t >= F.minTemp) && !(s.rain && F.maxRain < 50)
+      && (F.maxCost >= 1500 || !s.eur || s.eur <= F.maxCost) && (F.maxTime >= 16 || !s.hrs || s.hrs <= F.maxTime); };
+  const minSun = F.minSun;
+  $("sunnyOnly").setAttribute("aria-pressed", S.sunnyOnly);
   const today = fmtDate(new Date(Date.UTC(new Date().getFullYear(), new Date().getMonth(), new Date().getDate())));
   $("depfrom").innerHTML = `From <b>${esc(S.home.i)}</b> ${esc(S.home.n)} · local time` +
     ($("dep").value !== today ? `<span class="depnote">Today's flights. Your trip starts ${fmtShort(tripDays().a)}.</span>` : "");
   const ul = $("deps"), foot = $("depfoot");
-  foot.textContent = "";
+  foot.textContent = ""; if (!DEP.data) { $("depcount").textContent = ""; $("sunnyOnly").textContent = "Matches only"; }
   if (DEP.loading) { ul.innerHTML = '<li class="skel"></li><li class="skel"></li><li class="skel"></li>'; return; }
   const msg = {
     offline: `Live departures load on the website. <a href="${SITE}" target="_blank" rel="noopener">Open tf outta here ↗</a>`,
@@ -1445,10 +1431,11 @@ function drawDeps() {
   };
   if (DEP.err) { ul.innerHTML = `<li class="empty">${msg[DEP.err] || `The flight data service didn't answer. <button data-retry>Try again</button>`}</li>`; return; }
   if (!DEP.data) { ul.innerHTML = ""; return; }
-  let fl = DEP.data.flights.map(f => ({...f, sun: destSun(f.to)}));
+  let fl = DEP.data.flights.map(f => ({...f, sun: destSun(f.to)})); fl.forEach(f => f.fit = fits(f));
   DEPF.clear();
-  const total = fl.length;
-  if (S.sunnyOnly) fl = fl.filter(f => f.sun && f.sun.v !== null && f.sun.v >= minSun);
+  const total = fl.length, nfit = fl.filter(f => f.fit).length;
+  $("depcount").textContent = nfit; $("sunnyOnly").textContent = S.sunnyOnly ? `Matches only · ${nfit}` : `All flights · ${total}`;
+  if (S.sunnyOnly) fl = fl.filter(f => f.fit);
   // Flaps flip in when the board changes, not on every repaint
   const sig = fl.map(f => f.no + f.t).join(); ul.classList.toggle("flip", sig !== DEP.sig); DEP.sig = sig;
   const flap = str => [...str.toUpperCase().slice(0, 20)].map((ch, i) => ch === " " ? '<i class="sp" aria-hidden="true"></i>' : `<i aria-hidden="true" style="--i:${i}">${esc(ch)}</i>`).join("");
@@ -1463,7 +1450,7 @@ function drawDeps() {
     const fk = `f:${f.no}@${f.t}`;
     if (city) DEPF.set(fk, {...f, dest: city, late, status, cls: late && cls === "" ? "warn" : cls});
     const name = (f.tn || (AP.get(f.to) || [])[2] || f.to).replace(/ Island$/, "");
-    return `<li style="--r:${Math.min(row++, 10)}"><${tag} class="dr"${city ? ` type="button" data-i="${city}" data-k="${esc(fk)}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
+    return `<li style="--r:${Math.min(row++, 10)}"${f.fit ? "" : ' class="miss"'}><${tag} class="dr"${city ? ` type="button" data-i="${city}" data-k="${esc(fk)}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
       <span class="dt"><b>${late ? f.r : f.t}</b>${late ? `<s>${f.t}</s>` : ""}<span class="fn">${esc(f.no)}</span></span>
       <span class="pl"><span class="nm flap" role="text" aria-label="${esc(name)}">${flap(name)}</span><span class="meta"><span class="code">${esc(f.to)}</span> · ${esc(f.al)}${f.sun && f.sun.hrs ? ` · ${f.sun.hrs.toFixed(1)} h` : ""}<span class="mfare">${f.sun && f.sun.eur ? ` · €${f.sun.eur}` : ""}</span></span></span>
       <span class="dsun ${s ? (s.est ? "est" : "") + (s.v >= minSun ? " hi" : "") : "est"}" title="${s ? `${s.est ? "About " : ""}${s.v.toFixed(1)} h of sun of ${s.dl.toFixed(1)} h daylight today${s.rain ? ", rain likely" : ""}` : "No weather data nearby"}"><b>${s ? `${s.est ? "~" : ""}${s.v.toFixed(s.v < 10 ? 1 : 0)}` : "–"}</b>${s ? dayBar(s) : ""}</span>
@@ -1471,11 +1458,12 @@ function drawDeps() {
       <span class="fare" title="Estimated return fare">${f.sun && f.sun.eur ? `€${f.sun.eur}` : "–"}</span>
       <span class="st ${late && cls === "" ? "warn" : cls}">${esc(status)}</span>
     </${tag}></li>`; }).join("")
-    : `<li class="empty">${total ? `None of today's ${total} remaining departures heads somewhere with ${minSun} h+ of sun.` : `No more departures from ${esc(S.home.i)} today.`}</li>`;
+    : `<li class="empty">${total ? `None of today's ${total} remaining departures matches your filters. <button data-all>Show all flights</button>` : `No more departures from ${esc(S.home.i)} today.`}</li>`;
   foot.textContent = `${total} departures left today · updated ${new Date(DEP.data.asOf).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"})} · ~ estimated from nearby weather stations`;
 }
 $("deps").addEventListener("click", e => {
   if (e.target.closest("[data-retry]")) return loadDeps(true);
+  if (e.target.closest("[data-all]")) { S.sunnyOnly = false; return drawDeps(); }
   const b = e.target.closest("[data-k]"); if (!b) return;
   openKey(b.dataset.k);
 });
@@ -1498,7 +1486,14 @@ document.querySelector(".tabs").addEventListener("keydown", e => {
 });
 
 // ---- Events
-["minDay", "minSun", "minTemp", "maxRain", "maxCost", "maxTime", "sort"].forEach(id => $(id).addEventListener("input", () => render(false)));
+[...FIDS, "sort"].forEach(id => $(id).addEventListener("input", () => render(false)));
+$("filterSum").addEventListener("click", e => {
+  if (e.target.closest("[data-reset]")) { FIDS.forEach(id => $(id).value = $(id).defaultValue); if (S.fed) editFilter(null); else render(false); return; }
+  const b = e.target.closest(".fchip"); if (b) editFilter(b.dataset.f); });
+$("fePresets").addEventListener("click", e => {
+  if (e.target.closest("[data-done]")) return editFilter(null);
+  const b = e.target.closest("[data-v]"); if (!b || !S.fed) return;
+  $(S.fed).value = b.dataset.v; render(false); });
 // Return can't be before departure; moving the departure past it pushes the return a week out
 $("dep").addEventListener("change", () => { const d = $("dep").value; $("ret").min = d;
   if (d && $("ret").value < d) $("ret").value = fmtDate(new Date(Date.parse(d + "T00:00Z") + 7*864e5)); });
@@ -1527,7 +1522,7 @@ addEventListener("keydown", e => {
 addEventListener("keydown", e => {
   if (e.key !== "Escape" || (e.target.closest && e.target.closest("input, select"))) return;
   if (S.sel) select(null);
-  else if (!$("filterBox").hidden) $("filterToggle").click();
+  else if (S.fed) editFilter(null);
   else if ($("app").dataset.sheet === "full") setSheet("peek");
 });
 $("home").addEventListener("focus", e => e.target.select());
@@ -1535,24 +1530,32 @@ $("home").addEventListener("change", e => { const a = findAirport(e.target.value
   if (a && a[0] !== S.home.i) setHome(a); else { setHome(null); render(false); } });
 $("home").addEventListener("keydown", e => { if (e.key === "Enter") e.target.blur(); });
 $("locate").onclick = () => locate(false);
-$("colorBy").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return;
-  S.colorBy = b.dataset.k; [...$("colorBy").children].forEach(x => x.setAttribute("aria-pressed", x === b)); render(false); });
 $("results").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (!b) return; select(b.dataset.i); });
 // Phone bottom sheet: "peek" shows a few rows over the map, "full" shows the whole board
 function setSheet(state) {
   $("app").dataset.sheet = state;
-  for (const b of [$("grab"), $("listToggle")]) b.setAttribute("aria-expanded", state === "full");
+  $("grab").setAttribute("aria-expanded", state === "full");
   $("grab").setAttribute("aria-label", state === "full" ? "Show less of the list" : "Show more of the list");
-  $("listToggle").innerHTML = state === "full" ? 'Less <span aria-hidden="true">▾</span>' : 'More <span aria-hidden="true">▴</span>';
-  freeBottom();
 }
 $("grab").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
-$("list").addEventListener("wheel", e => { if (!isMobile() && e.deltaY > 0 && $("app").dataset.sheet === "peek" && $("app").dataset.step === "results" && e.target.closest(".panelbody")) setSheet("full"); }, {passive: true});
-{ let y0 = null;
-  $("list").addEventListener("pointerdown", e => { if (isMobile() && (e.target.closest(".grab, .tripbar, .listtop") && !e.target.closest("button:not(.grab)") || ($("app").dataset.sheet === "peek" && e.target.closest(".panelbody")))) y0 = e.clientY; });
-  addEventListener("pointerup", e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null;
-    if (dy < -24) setSheet("full"); else if (dy > 24) setSheet("peek"); });
-  addEventListener("pointercancel", () => { y0 = null; }); }
+// The sheet follows the finger; on release it settles to full or peek by speed, else by where it was let go
+{ const el = $("list"); let y0 = null, t0 = 0, base = 0, moved = false, dragged = 0;
+  const peekY = () => Math.max(0, el.offsetHeight - (parseFloat(getComputedStyle(el).getPropertyValue("--peek")) || 292));
+  el.addEventListener("pointerdown", e => {
+    if (!isMobile() || $("app").dataset.step !== "results" || e.target.closest("input, select")) return;
+    const peek = $("app").dataset.sheet !== "full";
+    if ((e.target.closest(".grab, .tripbar, .listtop") && !e.target.closest(".tripsum")) || (peek && e.target.closest(".panelbody, .fbar, .tripbar"))) {
+      y0 = e.clientY; t0 = e.timeStamp; base = peek ? peekY() : 0; moved = false; } });
+  addEventListener("pointermove", e => { if (y0 === null) return; const dy = e.clientY - y0;
+    if (!moved && Math.abs(dy) < 6) return; moved = true;
+    el.style.transition = "none"; el.style.transform = `translateY(${Math.max(0, Math.min(peekY(), base + dy))}px)`; });
+  const end = e => { if (y0 === null) return; const dy = e.clientY - y0, v = dy / Math.max(1, e.timeStamp - t0); y0 = null;
+    el.style.transition = ""; el.style.transform = "";
+    if (!moved) return; dragged = performance.now();
+    setSheet(v < -0.3 || (v <= 0.3 && base + dy < peekY() / 2) ? "full" : "peek"); };
+  addEventListener("pointerup", end); addEventListener("pointercancel", end);
+  // A drag that ends on a button is not a tap on it
+  el.addEventListener("click", e => { if (performance.now() - dragged < 300) { e.stopPropagation(); e.preventDefault(); } }, true); }
 // Two steps in one panel: first where and when, then filters and the board
 function setStep(st) {
   $("app").dataset.step = st;
@@ -1561,16 +1564,6 @@ function setStep(st) {
 }
 $("go").addEventListener("click", () => { S.note = ""; setStep("results"); render(false); zoomNearby(true); $("tripSum").focus({preventScroll: true}); });
 $("tripSum").addEventListener("click", () => { setStep("trip"); if (!isMobile()) $("home").focus(); });
-// A chip opens the filters on its own slider
-$("filterSum").addEventListener("click", e => { const b = e.target.closest(".fchip"); if (!b) return;
-  if ($("filterBox").hidden) $("filterToggle").click();
-  const el = $(b.dataset.f); el.focus({preventScroll: true}); el.closest(".f").scrollIntoView({block: "nearest"}); });
-$("filterToggle").addEventListener("click", e => {
-  const open = $("filterBox").hidden; $("filterBox").hidden = !open; $("filterSum").hidden = open;
-  e.currentTarget.setAttribute("aria-expanded", open);
-  if (open) setSheet("full");
-});
-$("listToggle").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
 new ResizeObserver(() => layout()).observe($("map"));
 setSheet("peek"); $("app").dataset.step = "trip";
 render(); layout(); loadApple();
