@@ -80,6 +80,13 @@ h1 { font: 600 15px/1.1 var(--sans); margin: 0; letter-spacing: -0.005em; white-
 .fromrow { display: flex; gap: 4px; min-width: 0; }
 input, select { font: 400 13.5px var(--sans); color: var(--sign-ink); background: var(--sign-2); border: 1px solid transparent; border-radius: 8px; height: 36px; padding: 0 10px; width: 100%; min-width: 0; box-sizing: border-box; }
 input:hover, select:hover { border-color: var(--sign-3); }
+/* Own chevron, inset like the text, instead of the browser's arrow jammed against the edge */
+select { -webkit-appearance: none; appearance: none; padding-right: 30px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23959ca7' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; background-size: 10px 6px; }
+input[type=date]::-webkit-calendar-picker-indicator { opacity: .5; cursor: pointer; margin-left: 4px; }
+input[type=date]::-webkit-calendar-picker-indicator:hover { opacity: .9; }
+select:focus-visible, input:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
 #home { font-weight: 500; }
 #home::placeholder { color: var(--sign-faint); }
 .iconbtn { flex: none; width: 36px; height: 36px; border: 0; border-radius: 8px; background: var(--sign-2); color: var(--sign-muted); display: grid; place-items: center; cursor: pointer; padding: 0; }
@@ -220,7 +227,8 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 #pane-places { overflow-y: auto; }
 #pane-places .board { overflow: visible; flex: none; }
 .listhead { padding: 0 16px 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.listhead select { width: auto; height: 30px; font-size: 12.5px; }
+/* The sort control reads as one of the filter chips: same height, pill shape and type */
+.listhead select { width: auto; height: 32px; border-radius: 16px; padding: 0 30px 0 12px; font: 500 12px var(--sans); color: var(--sign-ink); }
 /* Filters: one bar for both tabs. A chip per filter; tapping one opens its slider right below */
 .fsum { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; scrollbar-width: none; flex: none; }
 .fsum::-webkit-scrollbar { display: none; }
@@ -366,12 +374,13 @@ details.about { padding: 10px 16px 14px; }
 .fchead span { font: 500 11px/1 var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .fchead small { font-size: 11px; color: var(--muted); text-align: right; }
 .fcst { display: flex; overflow-x: auto; padding-bottom: 2px; color: var(--ink); }
-.fcst div { flex: none; width: 42px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 0; font-size: 11px; }
+.fcst div { flex: 1 0 42px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 4px 0; font-size: 11px; }
 .fcst div + div { box-shadow: inset 1px 0 0 var(--line); }
 .fcst svg { width: 15px; height: 15px; color: var(--faint); }
 .fcst .clear svg { color: var(--sun); }
 .fcst b { font: 500 12.5px var(--mono); }
 .fcst span { color: var(--faint); white-space: nowrap; }
+.fcst .hs { font: 500 11px var(--mono); }
 .months svg { width: 100%; height: auto; display: block; }
 .months text { font: 11px var(--mono); fill: var(--faint); }
 .links { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1392,7 +1401,7 @@ function ticketHTML(key, k, n, depth) {
     <div class="bp-bot">
     <div class="fchead"><span>Daily weather</span><small>${c.nf === c.nd ? "Forecast" : c.nf ? `Forecast for ${c.nf} of ${c.nd} days, pale ones are typical` : c.est ? "Typical, from weather stations nearby" : "Typical for these dates"}</small></div>
     <div class="fcst">${c.series.map(x => `<div class="${x.k}${x.fc ? "" : " typ"}" title="${x.fc ? "Forecast" : "Typical"}: ${Math.round(x.sun)} h sun${x.rain ? ", rain likely" : ""}">
-      <span>${x.d.toLocaleDateString("en-GB", {weekday: "short", timeZone: "UTC"})} ${x.d.getUTCDate()}</span>${ICON[x.k]}<b>${Math.round(x.t)}°</b><span>${Math.round(Math.min(x.sun, x.dl))} h sun</span></div>`).join("")}</div>
+      <span>${x.d.toLocaleDateString("en-GB", {weekday: "short", timeZone: "UTC"})} ${x.d.getUTCDate()}</span>${ICON[x.k]}<b>${Math.round(x.t)}°</b><span class="hs">${Math.round(Math.min(x.sun, x.dl))}h</span></div>`).join("")}</div>
     <div class="fchead"><span>Typical sun by month</span><small>2022–2025 average</small></div>
     <div class="months">${monthChart(c)}</div>
     <p class="caveat">The fare is a rough estimate from distance and season, not a live price.</p>
@@ -1477,12 +1486,12 @@ function fitRoute(c) {
 // ---- Main render
 // One definition per filter: its slider id, how it reads, and a few one-tap values
 const FDEF = {
-  minSun: {t: "Sun a day, at least", any: 0, fmt: v => v + " h", chip: v => `Sun<b>${v} h+</b>`, none: "Any sun", presets: [0, 4, 6, 8, 10]},
+  minSun: {t: "Sun a day, at least", any: 0, fmt: v => v + " h", chip: v => `Sun<b>${v}h+</b>`, none: "Any sun", presets: [0, 4, 6, 8, 10]},
   minTemp: {t: "Daytime high, at least", any: -5, fmt: v => v + "°C", chip: v => `Warm<b>${v}°+</b>`, none: "Any warmth", presets: [-5, 10, 16, 22, 28]},
   maxCost: {t: "Return fare, up to", any: 1500, fmt: v => "€" + v, chip: v => `Fare<b>≤€${v}</b>`, none: "Any fare", presets: [1500, 800, 600, 400, 250]},
-  maxTime: {t: "Flight time, up to", any: 16, fmt: v => v + " h", chip: v => `Flight<b>≤${v} h</b>`, none: "Any flight time", presets: [16, 12, 8, 5, 3]},
+  maxTime: {t: "Flight time, up to", any: 16, fmt: v => v + " h", chip: v => `Flight<b>≤${v}h</b>`, none: "Any flight time", presets: [16, 12, 8, 5, 3]},
   maxRain: {t: "Rainy days, at most", any: 100, fmt: v => v + "%", chip: v => `Rain<b>≤${v}%</b>`, none: "Any rain", presets: [100, 60, 40, 20, 0]},
-  minDay: {t: "Daylight, at least", any: 0, fmt: v => v + " h", chip: v => `Daylight<b>${v} h+</b>`, none: "Any daylight", presets: [0, 8, 10, 12]},
+  minDay: {t: "Daylight, at least", any: 0, fmt: v => v + " h", chip: v => `Daylight<b>${v}h+</b>`, none: "Any daylight", presets: [0, 8, 10, 12]},
 };
 const FIDS = Object.keys(FDEF);
 function readFilters() {
