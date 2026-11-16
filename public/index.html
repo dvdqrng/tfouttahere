@@ -486,7 +486,6 @@ details.about { padding: 10px 16px 14px; }
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
     mix-blend-mode: plus-lighter; }
   /* Where the lens filter runs, the glass is clearer: the bending at the edge does the work the frosting did */
-  .lens aside.list { --glass-tint: 60%; }
   .lens .legend, .lens .zoom { --glass-tint: 30%; }
   /* Inside the glass, wells and chips are lighter glass rather than solid blocks */
   aside.list, .zoom, .legend { --sign-2: rgba(255,255,255,.09); --sign-3: rgba(255,255,255,.16); --sign-muted: #c6cbd3; --sign-faint: #aab0ba; }
@@ -513,7 +512,6 @@ details.about { padding: 10px 16px 14px; }
         inset 0 0 24px rgba(255,255,255,.35); }
     :root:not([data-theme="dark"]) aside.list { --glass-tint: 70%; }
     :root:not([data-theme="dark"]) :is(.legend, .zoom) { --glass-tint: 52%; }
-    :root:not([data-theme="dark"]).lens aside.list { --glass-tint: 64%; }
     :root:not([data-theme="dark"]).lens :is(.legend, .zoom) { --glass-tint: 42%; }
   }
 }
@@ -1070,6 +1068,7 @@ void main() {
 // ---- Lens: like a thick pane with rounded edges, the glass bends the map it sits on towards its rim. Each glass
 // element gets an SVG filter with a displacement map built from its own shape (strong at the rim, none past the
 // bevel), rebuilt when it changes size. Only Chromium can run SVG filters as a backdrop; elsewhere the glass is frosted.
+// The board stays frosted everywhere: on a panel that big the lens filter doubled the slowest frames while the map moves.
 (function lens(els) {
   if (!/Chrome\/|Edg\//.test(navigator.userAgent) || matchMedia("(prefers-reduced-transparency: reduce)").matches) return;
   const NS = "http://www.w3.org/2000/svg", host = document.createElementNS(NS, "svg");
@@ -1111,7 +1110,7 @@ void main() {
   const ro = new ResizeObserver(es => es.forEach(e => build(e.target, els.indexOf(e.target))));
   els.forEach((el, n) => { build(el, n); ro.observe(el); });
   matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => els.forEach(build));
-})([$("list"), $("legend"), document.querySelector(".zoom")]);
+})([$("legend"), document.querySelector(".zoom")]);
 
 // ---- Apple Maps (website only). /api/mapkit hands out a short-lived token; without one the outline map stays.
 function loadApple() {
