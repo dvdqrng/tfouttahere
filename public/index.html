@@ -85,11 +85,17 @@ input:hover, select:hover { border-color: var(--sign-3); }
 .iconbtn svg { width: 16px; height: 16px; }
 .iconbtn[aria-busy=true] svg { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
-.compare { font-size: 12.5px; color: var(--sign-muted); min-width: 0; margin: 0; padding: 0 4px; text-wrap: pretty; }
-.compare b { color: var(--sign-ink); font-weight: 500; }
-.compare .up { color: var(--yellow); font-weight: 500; }
-.compare .fcnote { display: block; font-size: 11.5px; color: var(--sign-faint); margin-bottom: 2px; }
-.compare .msg { display: block; color: var(--st-warn); margin-bottom: 2px; }
+.compare { min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.compare .msg { margin: 0; padding: 0 4px; font-size: 12px; color: var(--st-warn); text-wrap: pretty; }
+/* Home against the top of the list: two tiles, the sunnier one in yellow */
+.cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cmp > * { all: unset; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 10px; background: var(--sign-2); }
+.cmp b { font: 600 20px/1 var(--mono); color: var(--sign-ink); letter-spacing: -0.01em; }
+.cmp small { font-size: 11.5px; color: var(--sign-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmp .best { cursor: pointer; } .cmp .best b { color: var(--yellow); }
+.cmp .best:hover { background: var(--sign-3); }
+.cmp .best:focus-visible { outline: 2px solid var(--yellow); }
+.fcnote { flex-basis: 100%; }
 .code { font: 600 12px/1 var(--mono); color: var(--yellow); letter-spacing: .02em; }
 
 /* Panels */
@@ -148,6 +154,15 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 #pins .pin .st svg { width: 13px; height: 13px; flex: none; }
 #pins .pin .st .h { color: var(--yellow); font-weight: 500; }
 #pins .pin .ic { display: grid; } #pins .pin .ic.clear { color: var(--yellow); }
+/* One-line pin where there is less room: name and hours of sun */
+#pins .pin.c { height: 24px; flex-direction: row; align-items: center; justify-content: flex-start; gap: 6px; border-radius: 7px; }
+#pins .pin.c .ic, #pins .pin.c .t { display: none; }
+/* "+N": more matching places tucked under this pin; tapping it zooms in on them */
+#pins .pin .n { position: absolute; right: -8px; top: -8px; min-width: 20px; height: 20px; box-sizing: border-box; padding: 0 5px; border-radius: 10px;
+  background: var(--yellow); color: var(--on-yellow); font: 600 10.5px/20px var(--mono); text-align: center; box-shadow: 0 0 0 2px var(--sign), 0 2px 6px rgba(0,0,0,.3); cursor: zoom-in; }
+#pins .pin .n[hidden] { display: none; }
+#pins .pin .n:hover { filter: brightness(1.08); }
+#pins .pin .n::before { content: ""; position: absolute; inset: -8px; }
 #pins .homemk { position: absolute; left: 0; top: 0; will-change: transform; display: flex; align-items: center; gap: 5px; }
 #pins .homemk i { width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 4px; background: var(--sign); color: var(--yellow); display: grid; place-items: center; }
 #pins .homemk svg { width: 12px; height: 12px; }
@@ -177,7 +192,10 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .app { --side: 420px; }
   aside.list { left: var(--gut-l); top: 16px; bottom: 16px; width: var(--side); }
   .app[data-step="trip"] aside.list { bottom: auto; }
-  .legend { left: calc(var(--gut-l) + var(--side) + 12px); }
+  /* Map key bottom right, out of the way of the ticket; filters wrap so every one is in sight */
+  .legend { left: auto; top: auto; right: var(--gut-r); bottom: 16px; }
+  .fsum { flex-wrap: wrap; overflow: visible; }
+  .tripbar { gap: 10px; }
   .detail { left: calc(var(--gut-l) + var(--side) + 12px); bottom: 16px; overflow: visible; max-height: calc(100% - 32px); }
   .detail .ticket { max-height: calc(100vh - 64px); }
 }
@@ -460,7 +478,7 @@ details.about { padding: 10px 16px 14px; }
     <svg id="map" role="img" aria-label="World map of destinations coloured by sunshine"></svg>
     <svg id="route" aria-hidden="true"></svg>
     <div id="pins"></div>
-    <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show nearest destinations" title="Nearest destinations"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
+    <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show the best matches" title="Best matches"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
     <div class="legend" id="legend"></div>
     <div class="detail" id="detail" role="dialog" aria-label="Destination details" hidden></div>
   </div>
@@ -484,7 +502,7 @@ details.about { padding: 10px 16px 14px; }
     </section>
     <div class="tripbar" id="tripBar">
       <button class="tripsum" id="tripSum" type="button" aria-label="Change airport or dates"><span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><span class="ts-main"><span class="code" id="tsFrom"></span><span id="tsCity"></span></span><span class="ts-dates" id="tsDates"></span><span class="edit">Change</span></button>
-      <p class="compare" id="compare" aria-live="polite"></p>
+      <div class="compare" id="compare" aria-live="polite"></div>
     </div>
     <div class="listtop" id="listtop">
       <div class="tabs" role="tablist" aria-label="Board">
@@ -518,7 +536,7 @@ details.about { padding: 10px 16px 14px; }
         </div>
         <div class="cols pcols caps" aria-hidden="true"><span>Code</span><span>Destination</span><span class="csun"><span>Sun a day</span></span><span class="r">High</span><span class="r">Fare</span></div>
         <ul class="board" id="results"></ul>
-        <div class="foot key"><span><i></i>Forecast sun</span><span><i class="t"></i>Typical sun</span><span><i class="r"></i>Rain day</span><span>Grey: daylight</span></div>
+        <div class="foot key"><span><i></i>Forecast sun</span><span><i class="t"></i>Typical sun</span><span><i class="r"></i>Rain day</span><span>Grey: daylight</span><span class="fcnote" id="fcnote"></span></div>
         <details class="about"><summary>About the numbers</summary>
         <p class="note"><b>Weather</b> uses the 16-day forecast (Open-Meteo) for any trip days it covers. Days further out use the typical weather for that time of year from 2022–2025 records (ERA5). <b>Daylight</b> is sunrise to sunset for your exact dates. <b>Sunshine</b> is hours of direct sun per day. It reads about 1 h high in cloudy places, so compare places with each other rather than trusting the absolute number.</p>
         <p class="note"><b>Fares</b> are rough estimates from distance, season and how many budget airlines fly the route. Check live prices before you plan around them.</p>
@@ -747,7 +765,11 @@ const gLand = g.append("g"), gGrat = g.append("g");
 const pinsEl = $("pins"), CITY = new Map(), routePath = d3.select("#route").append("path").attr("class", "route");
 const homeEl = document.createElement("div"); homeEl.className = "homemk"; homeEl.setAttribute("aria-hidden", "true");
 homeEl.innerHTML = `<i>${ICON.plane}</i><b></b>`; pinsEl.appendChild(homeEl);
-pinsEl.addEventListener("click", e => { const b = e.target.closest(".city"); if (b) select(b.dataset.i); });
+pinsEl.addEventListener("click", e => { const b = e.target.closest(".city"); if (!b) return;
+  // "+N" on a pin zooms in on that group until each place has a pin of its own
+  const grp = e.target.closest(".n") && S.cluster && S.cluster.get(b.dataset.i);
+  if (grp && FREE) { const pad = 70; return frame(grp, {x0: FREE.x0 + pad, y0: FREE.y0 + pad, x1: FREE.x1 - pad, y1: FREE.y1 - pad}, 600); }
+  select(b.dataset.i); });
 pinsEl.addEventListener("pointerover", e => { if (e.pointerType !== "mouse") return; const b = e.target.closest(".city"); setHot(b ? b.dataset.i : null); });
 pinsEl.addEventListener("pointerleave", () => setHot(null));
 let W = 0, H = 0, T = d3.zoomIdentity, FREE = null, AMAP = null;
@@ -786,7 +808,9 @@ function layout() {
   const mobile = isMobile();
   // Phone: the map shows above the peeking sheet. Desktop: to the right of the sidebar.
   const x0 = mobile ? 8 : $("list").getBoundingClientRect().right - r.left + 16, x1 = mobile ? W - 8 : W - 64;
-  FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H - 24};
+  // Desktop keeps clear of the map key in the bottom right corner
+  const lg = $("legend").getBoundingClientRect();
+  FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H - 24 - (lg.height ? lg.height + 12 : 0)};
   proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "MultiPoint", coordinates: [[-179.9, -56], [179.9, 75]]});
   if (!AMAP) {
     gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
@@ -831,11 +855,13 @@ function frame(places, box, ms) {
   (ms ? svg.transition().duration(ms).ease(d3.easeCubicInOut) : svg).call(zoom.transform, t);
 }
 // Frame home and its nearest destinations inside the open area
+// Frame home and the best matches (by the list's order) inside the open area; with too few matches, the nearest places
 function zoomNearby(animate) {
   if (!S.home || !FREE || !S.rows.length) return;
-  const near = S.rows.filter(r => r.r !== "Home" && r.d >= 150).sort((a, b) => a.d - b.d).slice(0, 14);
+  const best = S.rows.filter(r => r.ok).sort((a, b) => a.rank - b.rank).slice(0, 8);
+  const near = best.length >= 3 ? best : S.rows.filter(r => r.r !== "Home" && r.d >= 150).sort((a, b) => a.d - b.d).slice(0, 14);
   const pad = 40;
-  frame([S.home, ...near], {x0: FREE.x0 + pad, y0: FREE.y0 + pad, x1: FREE.x1 - pad, y1: FREE.y1 - pad}, animate ? 650 : 0);
+  frame([S.home, ...near], {x0: FREE.x0 + pad, y0: FREE.y0 + pad + 40, x1: FREE.x1 - pad, y1: FREE.y1 - pad}, animate ? 650 : 0);
 }
 const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => { T = e.transform; g.attr("transform", T); MV = mercView(); drawCities(); FX.touch(); });
 svg.call(zoom).on("dblclick.zoom", null);
@@ -1031,29 +1057,56 @@ function drawCities() {
   const inView = d => { const [x, y] = pos.get(d.i); return x > -20 && x < W + 20 && y > -20 && y < H + 20; };
   // The top ten, plus whatever is selected or hovered, get a pin with name, sky, hours of sun and temperature.
   // Greedy placement: selection first, then by rank; above the spot, else below, else it stays a dot.
+  // Every matching place in view gets a pin: a full one (name, sky, sun, temperature) where there is room, a
+  // one-line one where it is tighter, and where pins would pile up the place joins its best neighbour's pin as "+N".
+  // Selection and hover go first, then by rank, so the best places always keep their own pin.
   const lit = d => d.i === S.sel || d.i === S.hot;
   const pri = d => lit(d) ? -1 : d.ok ? d.rank : 1e3;
-  const shown = rows.filter(d => ((d.ok && d.rank < 10) || lit(d)) && inView(d)).sort((a, b) => pri(a) - pri(b));
-  const boxes = [{x: hp[0] - 10, y: hp[1] - 10, w: 20 + 34, h: 20}, ...shown.map(d => { const [x, y] = pos.get(d.i); return {x: x - 6, y: y - 6, w: 12, h: 12, own: d.i}; })];
-  for (const el of [$("legend"), document.querySelector(".zoom")]) { const r = el.getBoundingClientRect(), o = svg.node().getBoundingClientRect(); if (r.width) boxes.push({x: r.left - o.left - 4, y: r.top - o.top - 4, w: r.width + 8, h: r.height + 8}); }
-  const pin = new Map(), PH = 36;
-  for (const d of shown) {
-    const [x, y] = pos.get(d.i), hrs = d.sun.toFixed(1) + "h", tmp = Math.round(d.temp) + "°";
-    const w = Math.ceil(Math.max(textW(short(d.n), "nm"), 19 + textW(hrs + " " + tmp, "st"))) + 18;
-    for (const up of [1, 0]) {
-      // Near the edge the sign slides inwards; its tip stays on the spot
-      const b = {x: Math.max(x - w + 12, Math.min(x - 12, Math.max(4, Math.min(W - 4 - w, x - w/2)))), y: up ? y - 8 - PH : y + 8, w, h: PH};
-      if (!lit(d) && (b.x < 4 || b.x + w > W - 4 || b.y < 4 || b.y + PH > H - 4)) continue;
-      if (lit(d) || !boxes.some(o => o.own !== d.i && b.x < o.x + o.w && o.x < b.x + b.w && b.y < o.y + o.h && o.y < b.y + b.h)) { boxes.push(b); pin.set(d.i, {w, up, hrs, tmp, dx: Math.round(b.x - x)}); break; }
-    }
+  const o = svg.node().getBoundingClientRect(), chrome = [], panels = [];
+  for (const el of [$("list"), $("detail"), $("legend"), document.querySelector(".zoom")]) {
+    if (el.hidden) continue; const r = el.getBoundingClientRect();
+    if (!r.width || !r.height) continue;
+    const q = {x: r.left - o.left - 6, y: r.top - o.top - 6, w: r.width + 12, h: r.height + 12}; chrome.push(q);
+    if (el.id === "list" || el.id === "detail") panels.push(q);
   }
+  const hit = (b, q) => b.x < q.x + q.w && q.x < b.x + b.w && b.y < q.y + q.h && q.y < b.y + b.h;
+  // Places hidden behind the board or the ticket do not take a pin
+  const under = d => { const [x, y] = pos.get(d.i); return panels.some(q => x > q.x + 6 && x < q.x + q.w - 6 && y > q.y + 6 && y < q.y + q.h - 6); };
+  const shown = rows.filter(d => (d.ok || lit(d)) && inView(d) && !under(d)).sort((a, b) => pri(a) - pri(b));
+  const boxes = [{x: hp[0] - 10, y: hp[1] - 10, w: 54, h: 20}, ...chrome];
+  const pin = new Map(), lead = [];
+  for (const d of shown) {
+    const [x, y] = pos.get(d.i), hrs = d.sun.toFixed(1) + "h", tmp = Math.round(d.temp) + "°", nmw = textW(short(d.n), "nm");
+    const dot = {x: x - 7, y: y - 7, w: 14, h: 14};
+    let got = null;
+    // A spot that is already under another pin joins it rather than squeezing in a pin of its own
+    if (lit(d) || !lead.some(l => hit(dot, l.b))) {
+      for (const [c, w, h] of [[0, Math.ceil(Math.max(nmw, 19 + textW(hrs + " " + tmp, "st"))) + 18, 36], [1, Math.ceil(nmw + 6 + textW(hrs, "st")) + 18, 24]]) {
+        for (const up of [1, 0]) {
+          // Near the edge the sign slides inwards; its tip stays on the spot
+          const b = {x: Math.max(x - w + 12, Math.min(x - 12, Math.max(4, Math.min(W - 14 - w, x - w/2)))), y: up ? y - 8 - h : y + 8, w, h};
+          // keep clear of the edges, with room for a "+N" badge at the top right
+          if (!lit(d) && (b.x < 4 || b.x + w > W - 14 || b.y < 12 || b.y + h > H - 4)) continue;
+          if (lit(d) || !boxes.some(q => hit(b, q))) { got = {b, c, w, up, hrs, tmp, dx: Math.round(b.x - x)}; break; }
+        }
+        if (got) break;
+      }
+    }
+    if (got) { boxes.push(got.b, dot); lead.push({d, x, y, b: got.b, n: []}); pin.set(d.i, got); continue; }
+    boxes.push(dot);
+    let best = null, bd = 150;
+    for (const l of lead) { const dd = Math.hypot(l.x - x, l.y - y); if (dd < bd) { bd = dd; best = l; } }
+    if (best) best.n.push(d);
+  }
+  S.cluster = new Map();
+  for (const l of lead) { const q = pin.get(l.d.i); q.n = l.n.length; if (l.n.length) S.cluster.set(l.d.i, [l.d, ...l.n]); }
   const rad = d => d.i === S.sel ? 7.5 : d.i === S.hot ? 7 : d.ok ? (d.rank < 10 ? 6 : 5) : 2.5;
   const seen = new Set();
   for (const d of rows) {
     seen.add(d.i);
     let o = CITY.get(d.i);
     if (!o) { const el = document.createElement("button"); el.type = "button"; el.className = "city"; el.dataset.i = d.i; el.tabIndex = -1;
-      el.innerHTML = '<i class="dot"><i class="core"></i></i><span class="pin"><span class="nm"></span><span class="st"><span class="ic"></span><span class="h"></span><span class="t"></span></span></span>';
+      el.innerHTML = '<i class="dot"><i class="core"></i></i><span class="pin"><span class="nm"></span><span class="st"><span class="ic"></span><span class="h"></span><span class="t"></span></span><b class="n" title="Zoom in to see them"></b></span>';
       pinsEl.appendChild(el); o = {el, pin: el.querySelector(".pin")}; CITY.set(d.i, o); }
     const [x, y] = pos.get(d.i);
     o.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
@@ -1065,10 +1118,11 @@ function drawCities() {
       o.el.style.setProperty("--r", r + "px"); o.el.style.setProperty("--c", (on ? r * (0.28 + 0.5 * Math.min(1, d.sun / 11)) : 0).toFixed(1) + "px");
       o.el.style.zIndex = lit(d) ? 3 : q ? 2 : d.ok ? 1 : 0;
       o.el.title = `${d.n}: ${d.sun.toFixed(1)} h sun, ${d.day.toFixed(1)} h daylight, ${Math.round(d.temp)}°C`; }
-    const psig = q ? [q.w, q.up, q.hrs, q.tmp, k, q.dx].join() : "";
+    const psig = q ? [q.w, q.up, q.c, q.n, q.hrs, q.tmp, k, q.dx].join() : "";
     if (psig !== o.psig) { o.psig = psig; o.pin.classList.toggle("on", !!q);
       if (q) { // a pin that goes away keeps its last face while it fades
-        o.pin.classList.toggle("dn", !q.up); o.pin.style.width = q.w + "px"; o.pin.style.setProperty("--dx", q.dx + "px");
+        o.pin.classList.toggle("dn", !q.up); o.pin.classList.toggle("c", !!q.c); o.pin.style.width = q.w + "px"; o.pin.style.setProperty("--dx", q.dx + "px");
+        const n = o.pin.querySelector(".n"); n.textContent = q.n ? "+" + q.n : ""; n.hidden = !q.n;
         o.pin.querySelector(".nm").textContent = short(d.n);
         const ic = o.pin.querySelector(".ic"); ic.className = "ic " + k; ic.innerHTML = ICON[k];
         o.pin.querySelector(".h").textContent = q.hrs; o.pin.querySelector(".t").textContent = q.tmp; } }
@@ -1097,7 +1151,7 @@ function drawRoute(force) {
 
 function legend() {
   const s = scales[S.colorBy];
-  $("legend").innerHTML = `<span>Sunshine zones · hours of sun a day on your dates</span>
+  $("legend").innerHTML = `<span>Hours of sun a day, on your dates</span>
     <div class="sw">${ZONES.map((t, i) => `<i style="background:var(--z${i})"></i>`).join("")}
       ${ZONES.map((t, i) => `<span>${i === ZONES.length - 1 ? t + "+" : t + "–" + ZONES[i + 1]}</span>`).join("")}</div>
     ${S.colorBy === "sun" ? "" : `<span class="dots">Dots: ${s.lab.toLowerCase()}
@@ -1320,7 +1374,7 @@ function fitRoute(c) {
     return frame([S.home, c], {x0: side, y0: FREE.y0 + Math.min(84, h * 0.3), x1: W - side, y1: bottom - Math.min(44, h * 0.15)}, 650); }
   const x0 = Math.max(FREE.x0, d.right - o.left + 16) + 70;
   if (W - 100 - x0 < 160) return;
-  frame([S.home, c], {x0, y0: FREE.y0 + 96, x1: W - 100, y1: H - 70}, 650);
+  frame([S.home, c], {x0, y0: FREE.y0 + 96, x1: W - 100, y1: Math.min(FREE.y1, $("legend").getBoundingClientRect().top - o.top - 12) - 30}, 650);
 }
 
 // ---- Main render
@@ -1386,10 +1440,12 @@ function render(recompute = true) {
   const near = rows.map(r => [r, hav(S.home.la, S.home.lo, r.la, r.lo)]).sort((a, b) => a[1] - b[1])[0];
   const h = near && near[1] < 400 ? near[0] : null, best = ok[0];
   const hdl = daylight(S.home.la, doyOf(trip.a));
-  $("compare").innerHTML = (S.note ? `<span class="msg">${esc(S.note)}</span>` : "") + fcLine() +
-    `<b>${esc(S.home.i)}</b> ${esc(S.home.n)}, ${fmtShort(trip.a)}–${fmtShort(trip.b)}: ` +
-    (h ? `<b>${h.sun.toFixed(1)} h</b> sun a day, ${h.day.toFixed(1)} h daylight${h.d >= 40 ? ` (${short(h.n)} weather)` : ""}.` : `${hdl.toFixed(1)} h daylight.`) +
-    (best ? ` Sunniest match: <b>${short(best.n)}</b> with <b>${best.sun.toFixed(1)} h</b>` + (h ? `, <span class="up">${(best.sun / Math.max(h.sun, 0.1)).toFixed(1)}× more</span>.` : ".") : "");
+  // Home against the top of the list, as two tiles: the gap is the point of the whole thing
+  $("compare").innerHTML = (S.note ? `<p class="msg">${esc(S.note)}</p>` : "") +
+    `<div class="cmp"><div title="${h && h.d >= 40 ? esc(short(h.n)) + " weather stands in for home" : ""}"><span class="caps">At home</span><b>${h ? h.sun.toFixed(1) + " h" : "–"}</b><small>${h ? `sun a day · ${h.day.toFixed(1)} h light` : `${hdl.toFixed(1)} h daylight`}</small></div>` +
+    (best ? `<button type="button" class="best" data-pick="${best.i}"><span class="caps">Top of the list</span><b>${best.sun.toFixed(1)} h</b><small>${esc(short(best.n))}${h ? ` · ${(best.sun / Math.max(h.sun, 0.1)).toFixed(1)}× more sun` : ""}</small></button>`
+      : `<div><span class="caps">Top of the list</span><b>–</b><small>nothing matches yet</small></div>`) + `</div>`;
+  $("fcnote").textContent = fcLine();
   $("tsFrom").textContent = S.home.i; $("tsCity").textContent = S.home.n;
   $("tsDates").textContent = `${fmtShort(trip.a)}–${fmtShort(trip.b)}`;
   $("tripHint").textContent = S.note || "Tip: the target button picks the airport nearest you.";
@@ -1403,7 +1459,7 @@ function render(recompute = true) {
 function fcLine() {
   const any = Object.values(FORECAST.d)[0]; if (!any) return "";
   const end = new Date(Date.parse(any.s + "T00:00Z") + (any.d.length - 1) * 864e5), asOf = new Date(FORECAST.asOf);
-  return `<span class="fcnote">Forecast updated ${fmtShort(asOf)}, covers up to ${fmtShort(end)}. Later days show typical weather.</span> `;
+  return `Forecast updated ${fmtShort(asOf)}, covers up to ${fmtShort(end)}. Later days show typical weather.`;
 }
 const fmtShort = d => d.toLocaleDateString("en-GB", {day: "numeric", month: "short", timeZone: "UTC"});
 
@@ -1534,6 +1590,7 @@ $("list").addEventListener("pointerover", e => { if (e.pointerType !== "mouse") 
 $("list").addEventListener("pointerleave", () => setHot(null));
 $("picks").addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if (!b) return;
   S.note = ""; setStep("results"); render(false); select(b.dataset.pick); });
+$("compare").addEventListener("click", e => { const b = e.target.closest("[data-pick]"); if (b) select(b.dataset.pick); });
 // Arrow keys (or j/k) flip through the ticket stack
 addEventListener("keydown", e => {
   if (!S.sel || (e.target.closest && e.target.closest("input, select, textarea"))) return;
@@ -1570,6 +1627,8 @@ function setSheet(state) {
   $("grab").setAttribute("aria-label", state === "full" ? "Show less of the list" : "Show more of the list");
 }
 $("grab").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
+// Once the sheet (or anything else that covers the map) settles, pins re-place around it
+$("list").addEventListener("transitionend", e => { if (e.target === $("list") && e.propertyName === "transform") drawCities(); });
 // The sheet follows the finger; on release it settles to full or peek by speed, else by where it was let go
 { const el = $("list"); let y0 = null, t0 = 0, base = 0, moved = false, dragged = 0;
   const peekY = () => Math.max(0, el.offsetHeight - (parseFloat(getComputedStyle(el).getPropertyValue("--peek")) || 292));
