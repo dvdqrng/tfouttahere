@@ -73,8 +73,6 @@ button.chev:hover { background: var(--sign-2); color: var(--sign-ink); }
 button.chev:focus-visible { outline: 2px solid var(--yellow); }
 .collapsed .panelbody { display: none; }
 .collapsed .chev { transform: rotate(180deg); }
-aside.controls { left: var(--gut-l); top: var(--panel-top, 130px); width: 256px; max-height: calc(100% - var(--panel-top, 130px) - 16px); display: flex; flex-direction: column; }
-aside.controls .panelbody { padding: 0 16px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
 .group { display: flex; flex-direction: column; gap: 12px; }
 .group h2 { margin: 0; }
 label.f { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: var(--sign-muted); }
@@ -107,7 +105,7 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 #map .homemk path { fill: var(--yellow); }
 #map .homemk text { font: 600 11px var(--mono); fill: var(--ink); paint-order: stroke; stroke: var(--halo); stroke-width: 3px; stroke-linejoin: round; }
 #map .route { fill: none; stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 3 4; opacity: .55; pointer-events: none; }
-.legend { position: absolute; z-index: 1; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--sign); color: var(--sign-muted); border-radius: 12px; padding: 9px 12px; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
+.legend { position: absolute; z-index: 1; left: var(--free-cx, 50%); transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--sign); color: var(--sign-muted); border-radius: 12px; padding: 9px 12px; font-size: 11.5px; display: flex; flex-direction: column; gap: 6px; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
 .legend .bar { height: 6px; width: 180px; max-width: 100%; border-radius: 3px; }
 .legend .sw { display: grid; grid-template-columns: repeat(6, 36px); gap: 2px; }
 .legend .sw i { height: 6px; border-radius: 3px; }
@@ -121,7 +119,7 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 .zoom svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
 
 /* Board (places + departures) */
-aside.list { right: var(--gut-r); top: var(--panel-top, 130px); width: 384px; max-height: calc(100% - var(--panel-top, 130px) - 100px); display: flex; flex-direction: column; overflow: hidden; }
+aside.list { left: var(--gut-l); top: var(--panel-top, 130px); width: 492px; max-height: calc(100% - var(--panel-top, 130px) - 16px - env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; overflow: hidden; }
 aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .listtop { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; }
 .tabs { display: flex; gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 9px; flex: 1; }
@@ -130,9 +128,23 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 .tabs .cnt { font: 400 11px var(--mono); opacity: .7; margin-left: 4px; }
 .pane { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .pane[hidden] { display: none; }
+.pane > :not(.board) { flex: none; }
+/* Filters and list scroll together, so opening filters never squeezes the list away */
+#pane-places { overflow-y: auto; }
+#pane-places .board { overflow: visible; flex: none; }
 .listhead { padding: 0 16px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.listhead select { width: auto; height: 30px; font-size: 12.5px; }
-.key { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 3px 10px; font-size: 10.5px; color: var(--sign-faint); }
+.listhead select { width: auto; height: 32px; font-size: 12.5px; }
+.ftoggle { display: flex; align-items: center; gap: 7px; height: 32px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--sign-2); color: var(--sign-ink); font: 500 12.5px var(--sans); cursor: pointer; }
+.ftoggle svg { width: 15px; height: 15px; color: var(--yellow); }
+.ftoggle .chev { margin-left: 2px; transition: transform .15s; }
+.ftoggle[aria-expanded=true] { background: var(--sign-3); }
+.ftoggle[aria-expanded=true] .chev { transform: rotate(180deg); }
+.fsum { margin: -2px 16px 10px; font: 400 11.5px var(--mono); color: var(--sign-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fsum[hidden] { display: none; }
+.filters { display: flex; flex-direction: column; gap: 18px; padding: 6px 16px 16px; flex: none; border-top: 1px solid var(--sign-line); }
+.filters[hidden] { display: none; }
+.filters .group:first-child { padding-top: 8px; }
+.key { display: flex; flex-wrap: wrap; gap: 3px 12px; font-size: 10.5px; color: var(--sign-faint); }
 .key i { display: inline-block; width: 4px; height: 9px; border-radius: 1px; vertical-align: -1px; margin-right: 4px; background: var(--yellow); }
 .key i.t { opacity: .4; } .key i.r { width: 4px; height: 4px; border-radius: 50%; background: var(--rain); vertical-align: 1px; }
 .cols { display: grid; gap: 8px; align-items: center; padding: 8px 16px; border-top: 1px solid var(--sign-line); border-bottom: 1px solid var(--sign-line); }
@@ -141,8 +153,8 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 .board li + li > * { box-shadow: inset 0 1px 0 var(--sign-line); }
 #results li button, #deps li .dr { all: unset; box-sizing: border-box; width: 100%; padding: 9px 16px; display: grid; gap: 8px; align-items: center; }
 #results li button, #deps li button.dr { cursor: pointer; }
-.pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 96px 36px 46px; }
-.dcols, #deps li .dr { grid-template-columns: 42px 62px minmax(0, 1fr) 38px 74px; }
+.pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 96px 44px 52px; }
+.dcols, #deps li .dr { grid-template-columns: 52px minmax(0, 1fr) 84px 44px 52px 76px; }
 #results li button:hover, #deps li button.dr:hover { background: var(--sign-2); }
 #results li button.sel { background: color-mix(in srgb, var(--yellow) 14%, transparent); }
 #results li button:focus-visible, #deps li button.dr:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
@@ -166,18 +178,24 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 .dephead b { color: var(--sign-ink); font-weight: 500; }
 .chip { font: 500 12px var(--sans); color: var(--sign-muted); background: var(--sign-2); border: 0; border-radius: 999px; padding: 6px 11px; cursor: pointer; white-space: nowrap; }
 .chip[aria-pressed=true] { background: var(--yellow); color: var(--on-yellow); }
-.dt { font: 600 13px var(--mono); color: var(--yellow); }
-.dt s { display: block; font-weight: 400; font-size: 10.5px; color: var(--sign-faint); }
-.fn { font: 400 12px var(--mono); color: var(--sign-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.dsun { font: 500 12.5px var(--mono); text-align: right; white-space: nowrap; }
-.dsun.hi { color: var(--yellow); } .dsun.est { color: var(--sign-muted); }
+.dt b { font: 600 13px var(--mono); color: var(--yellow); }
+.dt s { font: 400 10.5px var(--mono); color: var(--sign-faint); }
+.fn { font: 400 11px var(--mono); color: var(--sign-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dsun { display: flex; align-items: center; justify-content: flex-end; gap: 6px; white-space: nowrap; }
+.dsun b { font: 500 12.5px var(--mono); }
+.dsun svg { display: block; flex: none; }
+.dsun .dl { fill: rgba(255,255,255,.09); } .dsun .s { fill: var(--yellow); } .dsun .rn { fill: var(--rain); }
+.dsun.est b { color: var(--sign-muted); } .dsun.est .s { opacity: .45; } .dsun.hi b { color: var(--yellow); }
+.dt { display: flex; flex-direction: column; gap: 2px; }
+.dt .fn { font-weight: 400; }
+.mfare { display: none; }
 .st { font: 500 11.5px var(--sans); text-align: right; color: var(--sign-muted); white-space: nowrap; }
 .st.go { color: var(--st-go); } .st.warn { color: var(--st-warn); } .st.bad { color: var(--st-bad); } .st.dim { color: var(--sign-faint); }
 .board .skel { height: 14px; margin: 14px 16px; border-radius: 4px; background: var(--sign-2); animation: pulse 1.2s ease-in-out infinite; }
 .foot { padding: 8px 16px 12px; font-size: 11px; color: var(--sign-faint); border-top: 1px solid var(--sign-line); }
 
 /* Destination card: a boarding pass */
-.detail { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom, 0px)); width: 352px; max-width: calc(100% - 32px); filter: drop-shadow(0 10px 22px rgba(16,24,40,.2)) drop-shadow(0 1px 2px rgba(16,24,40,.08)); }
+.detail { position: absolute; z-index: 3; left: var(--free-cx, 50%); transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom, 0px)); width: 352px; max-width: calc(100% - 32px); filter: drop-shadow(0 10px 22px rgba(16,24,40,.2)) drop-shadow(0 1px 2px rgba(16,24,40,.08)); }
 .bp-top, .bp-bot { background: var(--panel); padding: 16px; display: flex; flex-direction: column; gap: 14px; }
 .bp-top { border-radius: 16px 16px 0 0; padding-top: 0;
   -webkit-mask: radial-gradient(circle 9px at 0 100%, #0000 97%, #000) 0 0 / 51% 100% no-repeat, radial-gradient(circle 9px at 100% 100%, #0000 97%, #000) 100% 0 / 51% 100% no-repeat;
@@ -219,7 +237,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 .links a:hover { outline: 1px solid var(--faint); }
 
 /* Phone: one-line trip summary on top, a bottom sheet for the board, the pass as its own sheet */
-.tripsum, .grab, .tab-filters { display: none; }
+.tripsum, .grab { display: none; }
 @media (max-width: 760px) {
   .app { --peek: calc(236px + env(safe-area-inset-bottom, 0px)); }
   header.topbar { left: var(--gut-l); right: var(--gut-r); width: auto; transform: none; padding: 6px; gap: 0; border-radius: 14px; }
@@ -241,7 +259,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .trip label:first-child { grid-column: 1 / -1; }
   .compare { padding-top: 10px; }
   .compare .fcnote { display: none; }
-  .legend, aside.controls { display: none; }
+  .legend { display: none; }
   /* Board as a bottom sheet: peek shows a few rows, full covers the map below the trip bar */
   aside.list { left: 0; right: 0; bottom: 0; top: auto; width: auto; max-height: none; border-radius: 18px 18px 0 0; border-bottom: 0;
     height: var(--peek); transition: height .28s cubic-bezier(.2,.8,.2,1); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
@@ -252,13 +270,17 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .grab { all: unset; display: block; align-self: center; width: 100%; height: 22px; cursor: pointer; position: relative; }
   .grab::after { content: ""; position: absolute; left: 50%; top: 9px; width: 36px; height: 4px; margin-left: -18px; border-radius: 2px; background: var(--sign-3); }
   .grab:focus-visible::after { background: var(--yellow); }
-  .tab-filters { display: block; }
   .tabs button { padding: 8px 6px; }
   #listToggle { display: none; }
   .app[data-sheet="peek"] .listhead, .app[data-sheet="peek"] .cols, .app[data-sheet="peek"] .dephead, .app[data-sheet="peek"] .foot { display: none; }
   .app[data-sheet="peek"] .board { overflow: hidden; }
-  #pane-filters .panelbody { display: flex; flex-direction: column; gap: 20px; padding: 4px 16px 20px; overflow-y: auto; }
-  .dcols, #deps li .dr { grid-template-columns: 42px 54px minmax(0, 1fr) 34px 72px; }
+  .app[data-sheet="peek"] .fsum, .app[data-sheet="peek"] .filters, .app[data-sheet="peek"] .foot.key { display: none; }
+  .app[data-sheet="peek"] #pane-places { overflow: hidden; }
+  .dcols, #deps li .dr { grid-template-columns: 56px minmax(0, 1fr) 30px 46px 66px; }
+  .dt .fn { font-size: 10.5px; overflow: visible; }
+  .dcols .csun::after { content: "Sun"; } .dcols .csun span { display: none; }
+  .dsun svg, #deps .fare, .dcols .cfare { display: none; }
+  .mfare { display: inline; }
   #results li button, #deps li .dr { padding: 11px 16px; }
   /* Map controls sit just above the peeking sheet; pinch zooms */
   .zoom { bottom: calc(var(--peek) + 12px); }
@@ -274,7 +296,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 @media (max-width: 380px) {
   .spark svg { display: none; }
   .pcols, #results li button { grid-template-columns: 30px minmax(0, 1fr) 32px 36px 46px; }
-  .dcols, #deps li .dr { grid-template-columns: 40px 50px minmax(0, 1fr) 32px 64px; }
+  .dcols, #deps li .dr { grid-template-columns: 52px minmax(0, 1fr) 28px 42px 60px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -299,9 +321,36 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
     <datalist id="aplist"></datalist>
   </header>
 
-  <aside class="controls float" id="controls">
-    <button class="panelhead" aria-expanded="true"><span class="caps">Filters</span> <span class="chev" aria-hidden="true">▲</span></button>
-    <div class="panelbody" id="filtersBody">
+  <div class="mapwrap">
+    <svg id="map" role="img" aria-label="World map of destinations coloured by sunshine"></svg>
+    <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show nearest destinations" title="Nearest destinations"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
+    <div class="legend" id="legend"></div>
+    <div class="detail" id="detail" role="dialog" aria-label="Destination details" hidden></div>
+  </div>
+
+  <aside class="list float" id="list">
+    <div class="listtop" id="listtop">
+      <button class="grab" id="grab" aria-label="Show more of the list" aria-expanded="false"></button>
+      <div class="tabs" role="tablist" aria-label="Board">
+        <button role="tab" id="tab-places" data-tab="places" aria-selected="true" aria-controls="pane-places">Sunny places<span class="cnt" id="count"></span></button>
+        <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today</button>
+      </div>
+      <button class="chev" id="listToggle" aria-label="Collapse board" aria-expanded="true">▲</button>
+    </div>
+    <div class="panelbody">
+      <div class="pane" id="pane-places" role="tabpanel" aria-labelledby="tab-places">
+        <div class="listhead">
+          <button class="ftoggle" id="filterToggle" aria-expanded="false" aria-controls="filterBox"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M2 4.5h7M12 4.5h2M2 11.5h2M7 11.5h7"/><circle cx="10.5" cy="4.5" r="1.5"/><circle cx="5.5" cy="11.5" r="1.5"/></svg>Filters<span class="chev" aria-hidden="true">▼</span></button>
+          <select id="sort" aria-label="Sort destinations">
+            <option value="sun">Most sunshine</option>
+            <option value="value">Most sun per euro</option>
+            <option value="cost">Cheapest fare</option>
+            <option value="time">Shortest flight</option>
+            <option value="temp">Warmest</option>
+          </select>
+        </div>
+        <p class="fsum" id="filterSum"></p>
+        <div class="filters" id="filterBox" hidden>
     <div class="group">
       <h2 class="caps">Light</h2>
       <label class="f"><span class="row">Daylight at least <output id="o-day"></output></span>
@@ -337,48 +386,17 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
     <p class="note"><b>Fares</b> are rough estimates from distance, season and how many budget airlines fly the route. Check live prices before you plan around them.</p>
     <p class="note"><b>Departures</b> are live schedules from AeroDataBox. Sun at the destination is today's forecast; <b>~</b> means it's estimated from nearby weather stations.</p>
     </details>
-    </div>
-  </aside>
-
-  <div class="mapwrap">
-    <svg id="map" role="img" aria-label="World map of destinations coloured by sunshine"></svg>
-    <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show nearest destinations" title="Nearest destinations"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
-    <div class="legend" id="legend"></div>
-    <div class="detail" id="detail" role="dialog" aria-label="Destination details" hidden></div>
-  </div>
-
-  <aside class="list float" id="list">
-    <div class="listtop" id="listtop">
-      <button class="grab" id="grab" aria-label="Show more of the list" aria-expanded="false"></button>
-      <div class="tabs" role="tablist" aria-label="Board">
-        <button role="tab" id="tab-places" data-tab="places" aria-selected="true" aria-controls="pane-places">Sunny places<span class="cnt" id="count"></span></button>
-        <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today</button>
-        <button role="tab" id="tab-filters" class="tab-filters" data-tab="filters" aria-selected="false" aria-controls="pane-filters" tabindex="-1">Filters</button>
-      </div>
-      <button class="chev" id="listToggle" aria-label="Collapse board" aria-expanded="true">▲</button>
-    </div>
-    <div class="panelbody">
-      <div class="pane" id="pane-places" role="tabpanel" aria-labelledby="tab-places">
-        <div class="listhead">
-          <select id="sort" aria-label="Sort destinations">
-            <option value="sun">Most sunshine</option>
-            <option value="value">Most sun per euro</option>
-            <option value="cost">Cheapest fare</option>
-            <option value="time">Shortest flight</option>
-            <option value="temp">Warmest</option>
-          </select>
-          <div class="key"><span><i></i>Forecast sun</span><span><i class="t"></i>Typical</span><span><i class="r"></i>Rain</span></div>
         </div>
         <div class="cols pcols caps" aria-hidden="true"><span>Code</span><span>Destination</span><span>Sun a day</span><span class="r">High</span><span class="r">Fare</span></div>
         <ul class="board" id="results"></ul>
+        <div class="foot key"><span><i></i>Forecast sun</span><span><i class="t"></i>Typical sun</span><span><i class="r"></i>Rain day</span><span>Grey: daylight</span></div>
       </div>
       <div class="pane" id="pane-deps" role="tabpanel" aria-labelledby="tab-deps" hidden>
         <div class="dephead"><span id="depfrom"></span><button class="chip" id="sunnyOnly" aria-pressed="false"></button></div>
-        <div class="cols dcols caps" aria-hidden="true"><span>Time</span><span>Flight</span><span>Destination</span><span class="r">Sun</span><span class="r">Status</span></div>
+        <div class="cols dcols caps" aria-hidden="true"><span>Time</span><span>Destination</span><span class="r csun"><span>Sun today</span></span><span class="r">High</span><span class="r cfare">Fare</span><span class="r">Status</span></div>
         <ul class="board" id="deps"></ul>
         <div class="foot" id="depfoot"></div>
       </div>
-      <div class="pane" id="pane-filters" role="tabpanel" aria-labelledby="tab-filters" hidden></div>
     </div>
   </aside>
 
@@ -493,14 +511,16 @@ function compute(home, trip) {
     return {...c, day: day/n, sun: sun/n, temp: temp/n, rainDays: rain, rainPct: rain/n*100, cloud: cloud/n, nf, nd: n, daily, series, ...f};
   });
 }
+// WMO weather code → icon
+const codeIcon = c => c <= 1 ? "clear" : c === 2 ? "partly" : c <= 48 || (c >= 71 && c <= 77) ? "cloud" : "rain";
 // Today's sun at each station (forecast, else typical for the month); used by the departures board
 const TODAY = (() => { const t = new Date(); const u = Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate());
   return CITIES.map(c => { const fc = FORECAST.d[c.i], k = fc ? Math.round((u - Date.parse(fc.s + "T00:00Z")) / 864e5) : -1;
     const row = fc && k >= 0 && k < fc.d.length ? fc.d[k] : null;
-    return {c, la: c.la, lo: c.lo, v: row ? row[0] : c.m[t.getUTCMonth()][0], fc: !!row}; }); })();
+    const m = c.m[t.getUTCMonth()];
+    return {c, la: c.la, lo: c.lo, fc: !!row, v: row ? row[0] : m[0], t: row ? row[1] : m[2], rain: row ? row[2] >= 1 : m[3] / 30 >= 0.35,
+      k: row ? codeIcon(row[5]) : sky({rainPct: m[3] / 30 * 100, cloud: m[4]}).k}; }); })();
 const TODAY_BY = new Map(TODAY.map(x => [x.c.i, x]));
-// WMO weather code → icon
-const codeIcon = c => c <= 1 ? "clear" : c === 2 ? "partly" : c <= 48 || (c >= 71 && c <= 77) ? "cloud" : "rain";
 const rainText = r => Math.round(r.rainDays) < 1 ? "no rain" : `${Math.round(r.rainDays)} rainy day${Math.round(r.rainDays) === 1 ? "" : "s"}`;
 
 // ---- State
@@ -561,14 +581,11 @@ function layout() {
   const top = document.querySelector(".topbar").getBoundingClientRect().bottom - r.top;
   $("app").style.setProperty("--panel-top", `${Math.round(top + 12)}px`);
   const mobile = isMobile();
-  // Filters live in the left panel on desktop and in the sheet's Filters tab on phones
-  const fb = $("filtersBody"), fHome = mobile ? $("pane-filters") : $("controls");
-  if (fb.parentElement !== fHome) fHome.appendChild(fb);
-  if (!mobile && S.tab === "filters") setTab("places");
   const side = id => !mobile && !$(id).classList.contains("collapsed") ? $(id).getBoundingClientRect() : null;
-  const c = side("controls"), l = side("list");
-  let x0 = c ? c.right - r.left + 12 : 8, x1 = l ? l.left - r.left - 12 : W - 8;
+  const l = side("list");
+  let x0 = l ? l.right - r.left + 12 : 8, x1 = mobile ? W - 8 : W - 64;
   if (x1 - x0 < 420) { x0 = 8; x1 = W - 8; }
+  $("app").style.setProperty("--free-cx", mobile ? "50%" : `${Math.round((x0 + x1) / 2)}px`);
   FREE = {x0, x1, y0: top + 8, y1: H - (mobile ? parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 250 : 64) - (mobile ? 12 : 0)};
   proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "Sphere"});
   gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
@@ -741,6 +758,8 @@ function readFilters() {
   $("o-day").textContent = f.minDay + " h"; $("o-sun").textContent = f.minSun + " h/day";
   $("o-temp").textContent = f.minTemp + " °C"; $("o-rain").textContent = f.maxRain >= 100 ? "any" : f.maxRain + "% of days";
   $("o-cost").textContent = f.maxCost >= 1500 ? "any" : "€" + f.maxCost; $("o-time").textContent = f.maxTime >= 16 ? "any" : f.maxTime + " h";
+  $("filterSum").textContent = [`${f.minDay} h+ daylight`, `${f.minSun} h+ sun`, `${f.minTemp}°C+`, f.maxRain >= 100 ? "" : `rain ≤${f.maxRain}%`,
+    f.maxCost >= 1500 ? "" : `≤€${f.maxCost}`, f.maxTime >= 16 ? "" : `≤${f.maxTime} h flight`].filter(Boolean).join(" · ");
   if (f.maxCost >= 1500) f.maxCost = Infinity; if (f.maxTime >= 16) f.maxTime = Infinity;
   return f;
 }
@@ -807,14 +826,22 @@ const ST = {Expected: ["Scheduled", ""], Unknown: ["", ""], CheckIn: ["Check-in"
   Departed: ["Departed", "dim"], EnRoute: ["Departed", "dim"], Approaching: ["Departed", "dim"], Arrived: ["Departed", "dim"],
   Delayed: ["Delayed", "warn"], Canceled: ["Cancelled", "bad"], CanceledUncertain: ["Cancelled?", "bad"], Diverted: ["Diverted", "bad"]};
 // Sun at the destination today: its own forecast if it's a station, otherwise blended from stations nearby
+const BUDGET_CC = new Set(["PT","ES","IT","GR","MT","CY","TR","MA","TN","EG","FR","IL","JO"]);
 function destSun(code) {
   const a = AP.get(code), own = TODAY_BY.get(code);
-  if (own) return {v: own.v, est: !own.fc, city: own.c.i};
-  if (!a) return null;
-  const v = idw(a[4], a[5], TODAY);
-  const city = TODAY.find(x => hav(a[4], a[5], x.la, x.lo) < 80);
-  return v === null ? null : {v, est: true, city: city ? city.c.i : null};
+  const la = own ? own.la : a && a[4], lo = own ? own.lo : a && a[5];
+  if (la == null) return null;
+  const now = new Date(), dl = daylight(la, doyOf(new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))));
+  const f = fare(S.home, {la, lo, i: code, c: own ? own.c.c : BUDGET_CC.has(a[3]) ? "Spain" : a[3]}, now);
+  if (own) return {v: Math.min(own.v, dl), t: own.t, k: own.k, rain: own.rain, dl, est: !own.fc, city: own.c.i, ...f};
+  const near = TODAY.map(x => [x, hav(la, lo, x.la, x.lo)]).sort((p, q) => p[1] - q[1])[0];
+  const v = idw(la, lo, TODAY); if (v === null) return {dl, ...f, v: null};
+  return {v: Math.min(v, dl), t: idw(la, lo, TODAY.map(x => ({...x, v: x.t}))), k: near[0].k, rain: near[1] < 300 && near[0].rain, dl, est: true,
+    city: near[1] < 80 ? near[0].c.i : null, ...f};
 }
+// Today's sun as one bar over the day's daylight
+const dayBar = s => { const w = 44, x = v => Math.min(v, 14) / 14 * w;
+  return `<svg width="${w}" height="10" viewBox="0 0 ${w} 10" aria-hidden="true"><rect class="dl" y="2" width="${x(s.dl).toFixed(1)}" height="6" rx="2"/><rect class="s" y="2" width="${x(s.v).toFixed(1)}" height="6" rx="2"/>${s.rain ? `<circle class="rn" cx="${(x(s.dl) - 2).toFixed(1)}" cy="5" r="1.6"/>` : ""}</svg>`; };
 function drawDeps() {
   const minSun = +$("minSun").value;
   $("sunnyOnly").textContent = `${minSun} h+ sun only`; $("sunnyOnly").setAttribute("aria-pressed", S.sunnyOnly);
@@ -832,22 +859,23 @@ function drawDeps() {
   if (!DEP.data) { ul.innerHTML = ""; return; }
   let fl = DEP.data.flights.map(f => ({...f, sun: destSun(f.to)}));
   const total = fl.length;
-  if (S.sunnyOnly) fl = fl.filter(f => f.sun && f.sun.v >= minSun);
+  if (S.sunnyOnly) fl = fl.filter(f => f.sun && f.sun.v !== null && f.sun.v >= minSun);
   ul.innerHTML = fl.length ? fl.map(f => {
     const [label, cls] = ST[f.st] || [f.st, ""];
     const late = f.r && f.r !== f.t && !["Departed", "EnRoute", "Canceled"].includes(f.st);
-    const status = late && !label.startsWith("Cancel") ? `${label === "Scheduled" || !label ? "Now" : label} ${f.r}` : label;
-    const s = f.sun, city = s && s.city, tag = city ? "button" : "div";
+    const status = late && !label.startsWith("Cancel") && (label === "Scheduled" || !label) ? "Delayed" : label;
+    const s = f.sun && f.sun.v !== null ? f.sun : null, city = s && s.city, tag = city ? "button" : "div";
     const name = (AP.get(f.to) || [])[2] || f.tn || f.to;
     return `<li><${tag} class="dr"${city ? ` data-city="${city}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
-      <span class="dt">${late ? `${f.r}<s>${f.t}</s>` : f.t}</span>
-      <span class="fn">${esc(f.no)}</span>
-      <span class="pl"><span class="nm">${esc(name)}</span><span class="meta"><span class="code">${esc(f.to)}</span> · ${esc(f.al)}</span></span>
-      <span class="dsun ${s ? (s.est ? "est" : "") + (s.v >= minSun ? " hi" : "") : "est"}">${s ? `${s.est ? "~" : ""}${s.v.toFixed(0)} h` : "–"}</span>
+      <span class="dt"><b>${late ? f.r : f.t}</b>${late ? `<s>${f.t}</s>` : ""}<span class="fn">${esc(f.no)}</span></span>
+      <span class="pl"><span class="nm">${esc(name)}</span><span class="meta"><span class="code">${esc(f.to)}</span> · ${esc(f.al)}${f.sun && f.sun.hrs ? ` · ${f.sun.hrs.toFixed(1)} h` : ""}<span class="mfare">${f.sun && f.sun.eur ? ` · €${f.sun.eur}` : ""}</span></span></span>
+      <span class="dsun ${s ? (s.est ? "est" : "") + (s.v >= minSun ? " hi" : "") : "est"}" title="${s ? `${s.est ? "About " : ""}${s.v.toFixed(1)} h of sun of ${s.dl.toFixed(1)} h daylight today${s.rain ? ", rain likely" : ""}` : "No weather data nearby"}"><b>${s ? `${s.est ? "~" : ""}${s.v.toFixed(s.v < 10 ? 1 : 0)}` : "–"}</b>${s ? dayBar(s) : ""}</span>
+      <span class="tmp ${s ? s.k : ""}">${s ? `${ICON[s.k]}${Math.round(s.t)}°` : "–"}</span>
+      <span class="fare" title="Estimated return fare">${f.sun && f.sun.eur ? `€${f.sun.eur}` : "–"}</span>
       <span class="st ${late && cls === "" ? "warn" : cls}">${esc(status)}</span>
     </${tag}></li>`; }).join("")
     : `<li class="empty">${total ? `None of today's ${total} remaining departures heads somewhere with ${minSun} h+ of sun.` : `No more departures from ${esc(S.home.i)} today.`}</li>`;
-  foot.textContent = `${total} departures left today · updated ${new Date(DEP.data.asOf).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"})} · sun: today's forecast, ~ estimated`;
+  foot.textContent = `${total} departures left today · updated ${new Date(DEP.data.asOf).toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"})} · today's forecast at the destination, ~ estimated from nearby stations · fares are rough return estimates`;
 }
 $("deps").addEventListener("click", e => {
   if (e.target.closest("[data-retry]")) return loadDeps(true);
@@ -858,7 +886,7 @@ $("sunnyOnly").onclick = () => { S.sunnyOnly = !S.sunnyOnly; drawDeps(); };
 function setTab(t) {
   S.tab = t;
   document.querySelectorAll(".tabs [role=tab]").forEach(b => { const on = b.dataset.tab === t; b.setAttribute("aria-selected", on); b.tabIndex = on ? 0 : -1; });
-  $("pane-places").hidden = t !== "places"; $("pane-deps").hidden = t !== "deps"; $("pane-filters").hidden = t !== "filters";
+  $("pane-places").hidden = t !== "places"; $("pane-deps").hidden = t !== "deps";
   if (t === "deps") loadDeps();
 }
 document.querySelector(".tabs").addEventListener("click", e => { const b = e.target.closest("[role=tab]"); if (!b) return;
@@ -898,8 +926,10 @@ $("tripSum").addEventListener("click", () => {
   const open = $("topbar").classList.toggle("editing"); $("tripSum").setAttribute("aria-expanded", open);
   if (open) setSheet("peek"); layout();
 });
-document.querySelector("#controls .panelhead").addEventListener("click", e => {
-  const closed = $("controls").classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-expanded", !closed); layout();
+$("filterToggle").addEventListener("click", e => {
+  const open = $("filterBox").hidden; $("filterBox").hidden = !open; $("filterSum").hidden = open;
+  e.currentTarget.setAttribute("aria-expanded", open);
+  if (open && isMobile()) setSheet("full");
 });
 $("listToggle").addEventListener("click", e => {
   const closed = $("list").classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-expanded", !closed);
