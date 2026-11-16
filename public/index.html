@@ -6,9 +6,9 @@
 /* Layout: a light, full-bleed map; trip bar, filters and the board float over it as dark airport signs. */
 :root {
   --bg: #f3f4f6; --panel: #ffffff; --ink: #15181e; --muted: #6b7280; --faint: #9aa1ad; --line: #e6e8ec;
-  --land: #e4e7ec; --sea: #f1f3f6;
+  --land: #f3f1e7; --sea: #d5e4f1;
   --sun: #f2a516; --halo: #ffffff; --rain: #3b82f6;
-  --z0: #c3cddd; --z1: #dbe0e9; --z2: #f6efd6; --z3: #f8dc98; --z4: #f5c16b; --z5: #ef9f48;
+  --z0: #8f9cb5; --z1: #bcc5d5; --z2: #ebe6d2; --z3: #ffe08a; --z4: #ffc23d; --z5: #ff9c1f;
   /* Signage: the same in light and dark mode, like the real thing */
   --sign: #16181c; --sign-2: #24272d; --sign-3: #30343b; --sign-ink: #f4f5f7; --sign-muted: #a7adb7; --sign-faint: #878e99;
   --sign-line: rgba(255,255,255,.08); --yellow: #ffd200; --on-yellow: #121212;
@@ -19,14 +19,14 @@
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0e1116; --panel: #1a1e25; --ink: #e9ecf1; --muted: #9aa3b2; --faint: #6b7483; --line: #2a303a;
-  --land: #262c36; --sea: #12161c; --sun: #f6b23a; --halo: #12161c; --rain: #6ea8ff;
-  --z0: #2a3244; --z1: #323947; --z2: #4a4535; --z3: #66562e; --z4: #85622a; --z5: #a06327;
+  --land: #2a2f36; --sea: #0f1824; --sun: #f6b23a; --halo: #12161c; --rain: #6ea8ff;
+  --z0: #333d54; --z1: #454d60; --z2: #6b6650; --z3: #b8943a; --z4: #e0a42e; --z5: #ff9c1f;
   --sign: #1c1f25; --sign-2: #2a2e35; --sign-3: #363b43;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.4); color-scheme: dark } }
 :root[data-theme="dark"] {
   --bg: #0e1116; --panel: #1a1e25; --ink: #e9ecf1; --muted: #9aa3b2; --faint: #6b7483; --line: #2a303a;
-  --land: #262c36; --sea: #12161c; --sun: #f6b23a; --halo: #12161c; --rain: #6ea8ff;
-  --z0: #2a3244; --z1: #323947; --z2: #4a4535; --z3: #66562e; --z4: #85622a; --z5: #a06327;
+  --land: #2a2f36; --sea: #0f1824; --sun: #f6b23a; --halo: #12161c; --rain: #6ea8ff;
+  --z0: #333d54; --z1: #454d60; --z2: #6b6650; --z3: #b8943a; --z4: #e0a42e; --z5: #ff9c1f;
   --sign: #1c1f25; --sign-2: #2a2e35; --sign-3: #363b43;
   --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px rgba(0,0,0,.4); color-scheme: dark }
 html, body { height: 100%; }
@@ -116,11 +116,15 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 
 /* Map */
 .mapwrap { position: absolute; inset: 0; background: var(--sea); overflow: hidden; }
-#map { width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
-#map .land { fill: var(--land); stroke: none; }
-#map .outline { fill: none; stroke: var(--halo); stroke-opacity: .8; stroke-width: 0.6; vector-effect: non-scaling-stroke; pointer-events: none; }
-#map .grat { fill: none; stroke: var(--ink); stroke-opacity: .04; stroke-width: 0.5; vector-effect: non-scaling-stroke; }
-#map .zones { pointer-events: none; }
+#base, #amap, #sunfx, #map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#amap { display: none; } #sunfx { pointer-events: none; }
+#map { touch-action: none; cursor: grab; }
+/* Apple Maps underneath: it takes the gestures, the markers on top stay clickable */
+.mapwrap.apple #amap { display: block; } .mapwrap.apple #base { display: none; }
+.mapwrap.apple #map { pointer-events: none; } .mapwrap.apple #map .city { pointer-events: auto; }
+#base .land { fill: var(--land); stroke: none; }
+#base .outline { fill: none; stroke: var(--halo); stroke-opacity: .8; stroke-width: 0.6; vector-effect: non-scaling-stroke; pointer-events: none; }
+#base .grat { fill: none; stroke: var(--ink); stroke-opacity: .04; stroke-width: 0.5; vector-effect: non-scaling-stroke; }
 #map .city { cursor: pointer; }
 #map .city .hit { fill: transparent; stroke: none; }
 #map .city .dot { stroke: var(--halo); stroke-width: 1.5; }
@@ -253,14 +257,12 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 /* One ticket: a yellow header across the full width, then the stub and the details, split by a perforation */
 .ticket { position: relative; z-index: 1; display: flex; flex-direction: column; max-height: min(66vh, calc(100vh - 40px)); }
 .bp-body { overflow-y: auto; overscroll-behavior: contain; }
-/* The next tickets peek out behind the current one */
-.ghost { position: absolute; left: 0; right: 0; top: 0; height: 44px; border-radius: 16px 16px 0 0; background: color-mix(in srgb, var(--sign) 62%, var(--bg)); transform-origin: 50% 0; pointer-events: none; }
-.ghost.g1 { transform: translateY(-9px) scale(.955); }
-.ghost.g2 { transform: translateY(-17px) scale(.91); background: color-mix(in srgb, var(--sign) 38%, var(--bg)); }
-.ticket.in-next { animation: t-next .3s cubic-bezier(.2,.8,.2,1); }
-.ticket.in-prev { animation: t-prev .3s cubic-bezier(.2,.8,.2,1); }
-@keyframes t-next { from { transform: translateY(-12px) scale(.955); opacity: .5; } }
-@keyframes t-prev { from { transform: translateY(28px); opacity: 0; } }
+/* The stack: real tickets behind the one in hand, each opaque, peeking out above it */
+.ticket { transform-origin: 50% 0; will-change: transform; }
+.ticket.back, .ticket.leaving { position: absolute; left: 0; right: 0; pointer-events: none; }
+.ticket.back { top: 0; bottom: 0; overflow: hidden; }
+.ticket.leaving { bottom: 0; }
+.shade { position: absolute; inset: 0; border-radius: 16px; background: #0b0f17; opacity: 0; pointer-events: none; }
 .bp-nav { flex: none; display: flex; align-items: center; gap: 2px; }
 .bp-nav .pos { font: 500 11.5px var(--mono); letter-spacing: 0; margin-right: 6px; white-space: nowrap; }
 .bp-step { border: 0; background: transparent; color: inherit; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; }
@@ -370,7 +372,7 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
   .detail { left: 0; right: 0; bottom: 0; width: auto; max-width: none; transform: none; z-index: 5;
     max-height: none; overflow: visible; }
   .ticket { max-height: min(66vh, calc(100vh - 56px)); }
-  .ghost { border-radius: 18px 18px 0 0; }
+  .shade { border-radius: 18px 18px 0 0; }
   .bp-head, .bp-top { touch-action: none; }
   .bp-head > span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .bp-lab { display: none; }
@@ -405,7 +407,10 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 </style>
 
 <div class="app" id="app">
-  <div class="mapwrap">
+  <div class="mapwrap" id="mapwrap">
+    <svg id="base" aria-hidden="true"></svg>
+    <div id="amap"></div>
+    <canvas id="sunfx" aria-hidden="true"></canvas>
     <svg id="map" role="img" aria-label="World map of destinations coloured by sunshine"></svg>
     <div class="zoom"><button id="zin" aria-label="Zoom in" title="Zoom in">+</button><button id="zout" aria-label="Zoom out" title="Zoom out">−</button><button id="znear" aria-label="Show nearest destinations" title="Nearest destinations"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5"/><path d="M8 1v3M8 12v3M1 8h3M12 8h3"/></svg></button><button id="zworld" aria-label="Show whole world" title="Whole world"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg></button></div>
     <div class="legend" id="legend"></div>
@@ -705,83 +710,270 @@ const RAMP = ["#4b5c86", "#8b79a8", "#e39a16", "#ffd23a"];
 const colorFor = (k, v) => d3.scaleLinear().domain(scales[k].dom).range(RAMP).clamp(true)(v);
 
 // ---- Map
-const svg = d3.select("#map"), g = svg.append("g");
-const proj = d3.geoNaturalEarth1(), path = d3.geoPath(proj);
+// Base map: Apple Maps where the site can get a token, otherwise the built-in outline map. Both are Web Mercator,
+// so the same sunshine shader and the same markers sit on top of either.
+const svg = d3.select("#map"), base = d3.select("#base"), g = base.append("g");
+const proj = d3.geoMercator(), path = d3.geoPath(proj);
 const land = topojson.feature(WORLD, WORLD.objects.countries);
 const borders = topojson.mesh(WORLD, WORLD.objects.countries);
-const gClip = g.append("clipPath").attr("id", "landclip");
-const gLand = g.append("g"), gZone = g.append("g").attr("class", "zones").attr("clip-path", "url(#landclip)"), gGrat = g.append("g");
+const gLand = g.append("g"), gGrat = g.append("g");
 // Cities and the home marker live outside the zoomed group so they stay the same size at every zoom level
 const gRoute = svg.append("g"), gCity = svg.append("g"), gHome = svg.append("g").attr("class", "homemk").attr("aria-hidden", "true");
 gHome.append("rect").attr("x", -9).attr("y", -9).attr("width", 18).attr("height", 18).attr("rx", 4);
 gHome.append("path").attr("transform", "translate(-6.5,-6.5) scale(.82)").attr("d", "M14.6 8c0-.6-.5-1.05-1.1-1.05H10.2L7.1 2H5.6l1.6 4.95H4.1L3 5.4H2l.55 2.6L2 10.6h1l1.1-1.55h3.1L5.6 14h1.5l3.1-4.95h3.3c.6 0 1.1-.45 1.1-1.05z");
 gHome.append("text").attr("x", 13).attr("dy", "0.35em");
-let W = 0, H = 0, K = 1, T = d3.zoomIdentity, FREE = null;
-const screen = (la, lo) => T.apply(proj([lo, la]));
+let W = 0, H = 0, T = d3.zoomIdentity, FREE = null, AMAP = null;
+const isDark = () => { const t = document.documentElement.dataset.theme; return t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; };
+// Web Mercator on a unit square: x 0..1 west to east, y 0..1 north to south
+const mercX = lo => (lo + 180) / 360;
+const mercY = la => 0.5 - Math.log(Math.tan(Math.PI/4 + Math.max(-85, Math.min(85, la)) * Math.PI/360)) / (2*Math.PI);
+const mercLat = y => (2 * Math.atan(Math.exp((0.5 - y) * 2*Math.PI)) - Math.PI/2) * 180/Math.PI;
+// Where that square sits on screen right now: its width in px (s) and its top-left corner (x, y)
+let MV = {s: 1, x: 0, y: 0};
+function mercView() {
+  if (AMAP) {
+    try {
+      const c = AMAP.center, lo2 = c.longitude + (c.longitude > 0 ? -1 : 1), r = $("amap").getBoundingClientRect();
+      const p1 = AMAP.convertCoordinateToPointOnPage(c), p2 = AMAP.convertCoordinateToPointOnPage(new mapkit.Coordinate(c.latitude, lo2));
+      const s = (p2.x - p1.x) * 360 / (lo2 - c.longitude);
+      if (!(s > 64) || !isFinite(s)) return MV; // not laid out yet
+      return {s, x: p1.x - scrollX - r.left - mercX(c.longitude) * s, y: p1.y - scrollY - r.top - mercY(c.latitude) * s};
+    } catch (e) { return MV; }
+  }
+  const s = proj.scale(), [tx, ty] = proj.translate();
+  return {s: 2*Math.PI * s * T.k, x: T.k * (tx - Math.PI*s) + T.x, y: T.k * (ty - Math.PI*s) + T.y};
+}
+function screen(la, lo) {
+  let x = MV.x + MV.s * mercX(lo);
+  if (AMAP) x += MV.s * Math.round((W/2 - x) / MV.s); // Apple's map wraps: use the copy of the world that is on screen
+  return [x, MV.y + MV.s * mercY(la)];
+}
 // Desktop: the space left for zooming to places depends on how tall the board is
 function freeBottom() {
   if (FREE && !isMobile()) FREE.y1 = H - ($("app").dataset.sheet === "full" ? H * 0.64 : Math.min(328, H * 0.64)) - 28;
 }
 function layout() {
-  const r = svg.node().getBoundingClientRect(); W = r.width; H = r.height;
-  svg.attr("viewBox", `0 0 ${W} ${H}`);
-  // Fit the globe into the open space between the floating panels
+  const r = svg.node().getBoundingClientRect(), was = S.zoomed && !AMAP && W ? {v: mercView(), W, H} : null;
+  W = r.width; H = r.height;
+  if (!W || !H) return;
+  svg.attr("viewBox", `0 0 ${W} ${H}`); base.attr("viewBox", `0 0 ${W} ${H}`);
+  // Fit the world into the open space between the floating panels
   const top = 8;
   const mobile = isMobile();
   const x0 = 8, x1 = mobile ? W - 8 : W - 64;
   // Desktop: the board sits bottom centre, so the map frames the space above about half the screen
   FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H * 0.34 - 12};
-  proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "Sphere"});
+  proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "MultiPoint", coordinates: [[-179.9, -56], [179.9, 75]]});
   freeBottom();
-  gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
-  gClip.selectAll("path").data(land.features).join("path").attr("d", path);
-  gGrat.selectAll("path.grat").data([d3.geoGraticule10()]).join("path").attr("class", "grat").attr("d", path);
-  gGrat.selectAll("path.outline").data([borders]).join("path").attr("class", "outline").attr("d", path);
-  drawZones(); drawCities();
+  if (!AMAP) {
+    gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
+    gGrat.selectAll("path.grat").data([d3.geoGraticule10()]).join("path").attr("class", "grat").attr("d", path);
+    gGrat.selectAll("path.outline").data([borders]).join("path").attr("class", "outline").attr("d", path);
+  }
+  // The outline map was refitted to the new size: keep looking at the same place at the same scale
+  if (was) { const s = proj.scale(), [tx, ty] = proj.translate(), k = Math.max(1, Math.min(12, was.v.s / (2*Math.PI * s)));
+    svg.call(zoom.transform, d3.zoomIdentity.translate(was.v.x + (W - was.W) / 2 - k * (tx - Math.PI*s), was.v.y + (H - was.H) / 2 - k * (ty - Math.PI*s)).scale(k)); }
+  MV = mercView(); FX.resize(); drawCities();
   if (!S.zoomed) { S.zoomed = true; zoomNearby(false); }
+}
+// Fit places ({la, lo}) into a box of the screen
+function frame(places, box, ms) {
+  if (AMAP) {
+    const [la0, la1] = d3.extent(places, p => p.la), [lo0, lo1] = d3.extent(places, p => p.lo);
+    AMAP.padding = new mapkit.Padding(box.y0, Math.max(0, W - box.x1), Math.max(0, H - box.y1), box.x0);
+    AMAP.setRegionAnimated(new mapkit.CoordinateRegion(
+      new mapkit.Coordinate(mercLat((mercY(la0) + mercY(la1)) / 2), (lo0 + lo1) / 2),
+      new mapkit.CoordinateSpan(Math.max(4, la1 - la0), Math.max(6, lo1 - lo0))), !!ms);
+    return;
+  }
+  const pts = places.map(c => proj([c.lo, c.la]));
+  const [xa, xb] = d3.extent(pts, p => p[0]), [ya, yb] = d3.extent(pts, p => p[1]);
+  const k = Math.max(1, Math.min(12, (box.x1 - box.x0) / (xb - xa || 1), (box.y1 - box.y0) / (yb - ya || 1)));
+  const t = d3.zoomIdentity.translate((box.x0 + box.x1)/2 - k*(xa + xb)/2, (box.y0 + box.y1)/2 - k*(ya + yb)/2).scale(k);
+  (ms ? svg.transition().duration(ms) : svg).call(zoom.transform, t);
 }
 // Frame home and its nearest destinations inside the open area
 function zoomNearby(animate) {
   if (!S.home || !FREE || !S.rows.length) return;
   const near = S.rows.filter(r => r.r !== "Home" && r.d >= 150).sort((a, b) => a.d - b.d).slice(0, 14);
-  const pts = [S.home, ...near].map(c => proj([c.lo, c.la]));
-  const [xa, xb] = d3.extent(pts, p => p[0]), [ya, yb] = d3.extent(pts, p => p[1]);
-  const pad = 40, fw = FREE.x1 - FREE.x0 - 2*pad, fh = FREE.y1 - FREE.y0 - 2*pad;
-  const k = Math.max(1, Math.min(12, fw / (xb - xa || 1), fh / (yb - ya || 1)));
-  const t = d3.zoomIdentity.translate((FREE.x0 + FREE.x1)/2 - k*(xa + xb)/2, (FREE.y0 + FREE.y1)/2 - k*(ya + yb)/2).scale(k);
-  (animate ? svg.transition().duration(650) : svg).call(zoom.transform, t);
+  const pad = 40;
+  frame([S.home, ...near], {x0: FREE.x0 + pad, y0: FREE.y0 + pad, x1: FREE.x1 - pad, y1: FREE.y1 - pad}, animate ? 650 : 0);
 }
-const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => { T = e.transform; K = T.k; g.attr("transform", T); drawCities(); });
+const zoom = d3.zoom().scaleExtent([1, 12]).on("zoom", e => { T = e.transform; g.attr("transform", T); MV = mercView(); drawCities(); FX.touch(); });
 svg.call(zoom).on("dblclick.zoom", null);
-$("zin").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1.6);
-$("zout").onclick = () => svg.transition().duration(250).call(zoom.scaleBy, 1/1.6);
-$("znear").onclick = () => zoomNearby(true);
-$("zworld").onclick = () => svg.transition().duration(650).call(zoom.transform, d3.zoomIdentity);
-
-// ---- Sunshine zones: inverse-distance blend of the stations on a 1° grid, banded every 2 h.
-// Cells more than 900 km from any station stay empty rather than guessing.
-const ZONES = [0, 2, 4, 6, 8, 10];
-function computeZones() {
-  const pts = S.rows.map(r => ({la: r.la, lo: r.lo, v: r.sun}));
-  const nx = 360, ny = 180, vals = new Float64Array(nx * ny).fill(-1);
-  for (let y = 0; y < ny; y++) {
-    const la = 89.5 - y; if (la > 72 || la < -50) continue;
-    const band = pts.filter(p => Math.abs(p.la - la) <= 8.2);
-    for (let x = 0; x < nx; x++) { const v = idw(la, -179.5 + x, band); if (v !== null) vals[y*nx + x] = v; }
-  }
-  S.zones = d3.contours().size([nx, ny]).thresholds(ZONES)(vals).map(c => {
-    const polys = c.coordinates.map(poly => {
-      const rings = poly.map(ring => ring.map(([x, y]) => [x - 180, 90 - y]));
-      // Flipping y reverses winding; d3-geo would read that as "everything but this shape"
-      if (d3.geoArea({type: "Polygon", coordinates: rings}) > 2 * Math.PI) rings.forEach(r => r.reverse());
-      return rings;
-    });
-    return {value: c.value, geo: {type: "MultiPolygon", coordinates: polys}};
-  });
+function zoomBy(f) {
+  if (!AMAP) return svg.transition().duration(250).call(zoom.scaleBy, f);
+  const r = AMAP.region;
+  AMAP.setRegionAnimated(new mapkit.CoordinateRegion(r.center, new mapkit.CoordinateSpan(Math.min(150, r.span.latitudeDelta / f), Math.min(360, r.span.longitudeDelta / f))), true);
 }
-function drawZones() {
-  if (!S.zones) return;
-  gZone.selectAll("path").data(S.zones).join("path").attr("class", "zone").attr("d", d => path(d.geo)).style("fill", d => `var(--z${ZONES.indexOf(d.value)})`);
+$("zin").onclick = () => zoomBy(1.6);
+$("zout").onclick = () => zoomBy(1/1.6);
+$("znear").onclick = () => zoomNearby(true);
+$("zworld").onclick = () => {
+  if (!AMAP) return svg.transition().duration(650).call(zoom.transform, d3.zoomIdentity);
+  AMAP.setRegionAnimated(new mapkit.CoordinateRegion(new mapkit.Coordinate(22, S.home ? S.home.lo : 10), new mapkit.CoordinateSpan(120, 300)), true);
+};
+
+// ---- Sunshine field: the stations blended onto a 256 × 128 grid of the globe (red = hours of sun, alpha = how
+// much we know). The blend fades out between 500 and 1000 km from the nearest station rather than guessing.
+const ZONES = [0, 2, 4, 6, 8, 10];
+function computeField() {
+  const pts = S.rows.map(r => ({la: r.la, lo: r.lo, v: r.sun}));
+  const nx = 256, ny = 128, px = new Uint8Array(nx * ny * 4);
+  for (let y = 0; y < ny; y++) {
+    const la = 90 - (y + 0.5) * 180 / ny;
+    const band = pts.filter(p => Math.abs(p.la - la) <= 11);
+    if (!band.length) continue;
+    for (let x = 0; x < nx; x++) {
+      const lo = -180 + (x + 0.5) * 360 / nx;
+      let ws = 0, vs = 0, dmin = Infinity;
+      for (const p of band) {
+        const d = hav(la, lo, p.la, p.lo); if (d < dmin) dmin = d;
+        if (d >= 1200) continue;
+        const w = (1 - d / 1200) ** 2 / (d * d + 6400); ws += w; vs += w * p.v;
+      }
+      if (!ws) continue;
+      const o = (y * nx + x) * 4;
+      px[o] = Math.round(Math.max(0, Math.min(12, vs / ws)) / 12 * 255);
+      px[o + 3] = Math.round(Math.max(0, Math.min(1, (1000 - dmin) / 500)) * 255);
+    }
+  }
+  FX.field(px, nx, ny);
+}
+
+// ---- Sunshine shader: a WebGL layer between the base map and the markers. Sunny places glow warm with slow
+// light shafts and glints; dull places sit under a cool veil and drifting clouds, thicker the fewer hours of sun.
+const FX = (() => {
+  const cv = $("sunfx"), none = {ok: false, resize() {}, field() {}, touch() {}, draw() {}};
+  const VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}";
+  const FS = `precision highp float;
+uniform vec2 u_res; uniform float u_px; uniform vec3 u_view; uniform float u_t; uniform float u_dark; uniform sampler2D u_field;
+const float PI = 3.14159265;
+float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f);
+  return mix(mix(hash(i), hash(i + vec2(1., 0.)), f.x), mix(hash(i + vec2(0., 1.)), hash(i + vec2(1., 1.)), f.x), f.y); }
+float fbm(vec2 p) { float a = .5, s = 0.; for (int i = 0; i < 4; i++) { s += a * vn(p); p = p * 2.03 + 17.; a *= .5; } return s / .9375; }
+// Clouds are pinned to the map; two neighbouring detail levels cross-fade so they keep their size on screen at any zoom
+float clouds(vec2 m, float l0, float fr) {
+  float f = exp2(l0) * 8.; vec2 wind = vec2(u_t * .012, u_t * .004);
+  return mix(fbm(m * f + wind), fbm(m * f * 2. + wind + 31.7), fr);
+}
+vec4 over(vec4 d, vec3 c, float a) { return vec4(c * a + d.rgb * (1. - a), a + d.a * (1. - a)); }
+void main() {
+  vec2 p = vec2(gl_FragCoord.x, u_res.y - gl_FragCoord.y) / u_px;
+  vec2 m = (p - u_view.yz) / u_view.x;
+  if (m.y <= 0. || m.y >= 1.) { gl_FragColor = vec4(0.); return; }
+  float e = exp(PI * (1. - 2. * m.y)), lat = atan(.5 * (e - 1. / e));
+  vec4 fd = texture2D(u_field, vec2(m.x, .5 - lat / PI));
+  float sun = fd.r * 12., cov = smoothstep(0., 1., fd.a);
+  if (cov < .003) { gl_FragColor = vec4(0.); return; }
+  float lvl = log2(max(u_view.x, 1.) / 640.), l0 = floor(lvl), fr = smoothstep(0., 1., lvl - l0);
+  vec4 c = vec4(0.);
+
+  // Dull: cool veil
+  float gloom = 1. - smoothstep(1., 6.5, sun);
+  c = over(c, mix(vec3(.42, .49, .62), vec3(.02, .04, .09), u_dark), gloom * mix(.30, .46, u_dark));
+
+  // Sunny: warm light from pale yellow to deep gold, with slow diagonal shafts
+  float s = smoothstep(4.5, 10.5, sun);
+  vec3 warm = mix(vec3(1., .86, .42), vec3(1., .61, .12), smoothstep(6.5, 11., sun));
+  float beam = fbm(vec2((p.x + p.y * .55) * .0045 - u_t * .035, (p.y - p.x * .55) * .0012 + u_t * .01));
+  c = over(c, warm, s * mix(.52, .5, u_dark) * (.78 + .22 * beam));
+  c = over(c, vec3(1., .96, .76), s * s * smoothstep(.48, .8, beam) * mix(.26, .16, u_dark));
+
+  // Glints: four-point sparkles that twinkle where it is properly sunny
+  vec2 q = m * exp2(l0) * 640. / 52., id = floor(q);
+  float r = hash(id);
+  vec2 d = abs(fract(q) - .5 - (vec2(hash(id + 3.1), hash(id + 7.7)) - .5) * .6);
+  float tw = pow(max(0., sin(u_t * (.5 + r) + r * 40.)), 10.);
+  float star = clamp(1. - (d.x * d.y * 900. + dot(d, d) * 40.), 0., 1.);
+  c = over(c, vec3(1., .99, .9), star * star * tw * step(.5, r) * smoothstep(.5, .85, s) * .95);
+
+  // Clouds and the shadow they drop to the south-east
+  float cover = 1. - smoothstep(.5, 8., sun), th = mix(.76, .3, cover), edge = smoothstep(0., .12, cover);
+  float n = clouds(m, l0, fr), ns = clouds(m - vec2(8., 11.) / u_view.x, l0, fr);
+  float cl = smoothstep(th, th + .08, n) * edge, shd = smoothstep(th, th + .08, ns) * edge * (1. - cl);
+  c = over(c, mix(vec3(.14, .2, .36), vec3(0.), u_dark), shd * mix(.26, .36, u_dark));
+  // Lit from the north-west: bright where the cloud thickens towards the light, shaded on the far side
+  float lit = clamp(.55 + (n - ns) * 7., 0., 1.);
+  vec3 puff = mix(mix(vec3(.74, .79, .9), vec3(1.), lit), mix(vec3(.3, .34, .44), vec3(.7, .74, .82), lit), u_dark);
+  c = over(c, puff, cl * mix(.82, .6, u_dark));
+
+  gl_FragColor = c * cov;
+}`;
+  const gl = cv.getContext("webgl", {alpha: true, premultipliedAlpha: true, antialias: false, powerPreference: "low-power"});
+  if (!gl) return none;
+  let U = null, tex = null, last = null, dirty = true, lastT = 0, t0 = performance.now();
+  const still = matchMedia("(prefers-reduced-motion: reduce)");
+  function init() {
+    const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+    const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+    if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
+    gl.useProgram(pr);
+    gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const a = gl.getAttribLocation(pr, "a"); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+    U = {}; for (const n of ["u_res", "u_px", "u_view", "u_t", "u_dark", "u_field"]) U[n] = gl.getUniformLocation(pr, n);
+    tex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.uniform1i(U.u_field, 0); gl.clearColor(0, 0, 0, 0);
+    if (last) field(...last);
+  }
+  function field(px, nx, ny) {
+    last = [px, nx, ny]; if (!tex) return;
+    gl.bindTexture(gl.TEXTURE_2D, tex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, nx, ny, 0, gl.RGBA, gl.UNSIGNED_BYTE, px); dirty = true;
+  }
+  function resize() {
+    if (!W || !H) return;
+    const k = 0.75, w = Math.round(W * k), h = Math.round(H * k);
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
+    dirty = true;
+  }
+  // One frame: follow the base map, then repaint if the view moved or the animation is due (about 30 a second)
+  function draw(now) {
+    if (AMAP) { const v = mercView(); if (v.s !== MV.s || v.x !== MV.x || v.y !== MV.y) { MV = v; drawCities(); dirty = true; } }
+    if (!U || !last || !cv.width || document.hidden) return;
+    if (!dirty && (still.matches || now - lastT < 33)) return;
+    dirty = false; lastT = now;
+    gl.viewport(0, 0, cv.width, cv.height);
+    gl.uniform2f(U.u_res, cv.width, cv.height); gl.uniform1f(U.u_px, cv.width / W);
+    gl.uniform3f(U.u_view, MV.s, MV.x, MV.y);
+    gl.uniform1f(U.u_t, still.matches ? 40 : (now - t0) / 1000); gl.uniform1f(U.u_dark, isDark() ? 1 : 0);
+    gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+  try { init(); } catch (e) { console.warn("Sunshine layer off:", e.message); return none; }
+  cv.addEventListener("webglcontextlost", e => { e.preventDefault(); U = tex = null; });
+  cv.addEventListener("webglcontextrestored", () => { try { init(); } catch (e) {} });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { dirty = true; });
+  const loop = now => { draw(now); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+  return {ok: true, resize, field, touch() { dirty = true; }, draw};
+})();
+
+// ---- Apple Maps (website only). /api/mapkit hands out a short-lived token; without one the outline map stays.
+function loadApple() {
+  const h = location.hostname;
+  if (location.origin !== SITE && h !== "www.tfouttahere.com" && h !== "localhost" && h !== "127.0.0.1" && !h.endsWith(".vercel.app")) return;
+  const token = () => fetch("/api/mapkit").then(r => r.ok ? r.json() : Promise.reject(new Error("no token"))).then(j => j.token || Promise.reject(new Error("no token")));
+  const off = () => { if (!AMAP) return; try { AMAP.destroy(); } catch (e) {} AMAP = null; $("mapwrap").classList.remove("apple"); layout(); };
+  token().then(first => new Promise((ok, no) => {
+    const s = document.createElement("script"); s.src = "https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js"; s.crossOrigin = "anonymous";
+    s.onload = () => ok(first); s.onerror = () => no(new Error("mapkit.js did not load")); document.head.append(s);
+  })).then(first => {
+    mapkit.init({authorizationCallback: done => { if (first) { done(first); first = null; } else token().then(done, () => {}); }});
+    mapkit.addEventListener("error", off); // bad or expired token: back to the outline map
+    const scheme = () => isDark() ? mapkit.Map.ColorSchemes.Dark : mapkit.Map.ColorSchemes.Light;
+    const map = new mapkit.Map("amap", {mapType: mapkit.Map.MapTypes.Standard, colorScheme: scheme(), isRotationEnabled: false,
+      showsCompass: mapkit.FeatureVisibility.Hidden, showsScale: mapkit.FeatureVisibility.Hidden, showsZoomControl: false,
+      showsMapTypeControl: false, showsUserLocationControl: false, showsPointsOfInterest: false});
+    try { map.cameraZoomRange = new mapkit.CameraZoomRange(250000, 3e7); } catch (e) {}
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { map.colorScheme = scheme(); });
+    AMAP = map; $("mapwrap").classList.add("apple");
+    layout();
+    const c = rowFor(S.sel);
+    if (c && isMobile() && !$("detail").hidden) fitRoute(c, $("detail").getBoundingClientRect().top - svg.node().getBoundingClientRect().top); else zoomNearby(false);
+  }).catch(() => {});
 }
 
 function passes(r, f) {
@@ -864,7 +1056,7 @@ function openKey(key, opts = {}) {
 function step(d) {
   if (!S.cur || !S.seq) return;
   const j = S.seq.indexOf(S.cur) + d;
-  if (j < 0 || j >= S.seq.length) { const t = $("detail").querySelector(".ticket"); t && t.animate([{transform: "translateY(0)"}, {transform: `translateY(${d * 6}px)`}, {transform: "translateY(0)"}], 220); return; }
+  if (j < 0 || j >= S.seq.length) { const t = $("detail").querySelector(".ticket.front"); t && t.animate([{transform: "translateY(0)"}, {transform: `translateY(${d * 6}px)`}, {transform: "translateY(0)"}], 220); return; }
   openKey(S.seq[j], {dir: d});
 }
 // Airline colours come from the logo itself: the most frequent saturated colour, else its darkest ink
@@ -894,24 +1086,54 @@ function airlineColor(code) {
   });
   AIRCOL.set(code, p); return p;
 }
-function select(id, opts = {}) {
-  const prev = S.sel, prevKey = S.cur; const c = rowFor(id); const box = $("detail");
-  S.sel = c ? id : null; S.cur = c ? (opts.flight || id) : null; S.flight = c && opts.flight ? DEPF.get(opts.flight) : null;
-  if (c && !opts.dir && (!S.seq || !S.seq.includes(S.cur) || !prev)) S.seq = ticketSeq(S.cur);
-  if (!c) S.seq = null;
-  $("app").dataset.detail = c ? "1" : "";
-  if (!c) { box.hidden = true; render(false);
-    // Back on the board, land on the row the ticket came from
-    const b = prevKey && (document.querySelector(`.board [data-k="${CSS.escape(prevKey)}"]`) || document.querySelector(`.board [data-i="${prevKey}"]`));
-    if (b && b.offsetParent) { b.scrollIntoView({block: "nearest"}); b.focus({preventScroll: true}); }
-    return; }
+// The stack: each depth sits a little higher, a little narrower and a little darker
+const SHADE = [0, .07, .13, .13];
+const stackT = d => d ? `translateY(${-10 * Math.min(d, 2)}px) scale(${1 - .045 * Math.min(d, 2)})` : "none";
+let FLIPS = [], LASTFLIP = 0;
+function paintTicket(t, ac) {
+  airlineColor(ac).then(rgb => { if (!rgb || !t.isConnected) return;
+    const lum = (.2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2]) / 255;
+    t.style.setProperty("--hb", `rgb(${rgb})`); t.style.setProperty("--hf", lum > .6 ? "#121212" : "#ffffff"); });
+}
+// A new flip lands the previous one at once, so nothing is left half way
+function stackSettle() { FLIPS.forEach(a => a.finish()); FLIPS = []; document.querySelectorAll("#detail .ticket.leaving").forEach(t => t.remove()); }
+function stackFlip(box, front, was, dir) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) { if (was) was.remove(); return; }
+  const now = performance.now(), quick = now - LASTFLIP < 420; LASTFLIP = now;
+  const ms = quick ? 260 : 440, r = box.getBoundingClientRect();
+  // Far enough down that the whole ticket clears the bottom of the window
+  const off = innerHeight - r.top + 40, away = `translate(${dir > 0 ? 18 : -14}px, ${off}px) rotate(${dir > 0 ? 4 : -3}deg)`;
+  const settle = "cubic-bezier(.2,.85,.25,1)", run = (el, kf, o) => FLIPS.push(el.animate(kf, {duration: ms, easing: settle, fill: "backwards", ...o}));
+  box.querySelectorAll(".ticket").forEach(t => {
+    if (t.classList.contains("leaving")) return;
+    const d = t === front ? 0 : +t.className.match(/d(\d)/)[1], from = dir > 0 ? d + 1 : d - 1;
+    if (from < 0) { // previous ticket comes back up from below, on top of the stack
+      run(t, [{transform: away}, {transform: "none"}], {duration: ms + 60, easing: "cubic-bezier(.16,.84,.3,1)"}); return; }
+    if (stackT(from) === stackT(d) && SHADE[Math.min(from, 3)] === SHADE[d]) return;
+    run(t, [{transform: stackT(from)}, {transform: stackT(d)}], {delay: dir > 0 ? (quick ? 30 : 70) : 0});
+    run(t.querySelector(".shade"), [{opacity: SHADE[Math.min(from, 3)]}, {opacity: SHADE[d]}], {delay: dir > 0 ? (quick ? 30 : 70) : 0});
+  });
+  if (was) { // the old front is pulled off the stack: a small lift, then down and out
+    was.classList.remove("front"); was.classList.add("leaving"); was.inert = true; was.setAttribute("aria-hidden", "true");
+    was.style.zIndex = 20; was.style.height = `${front.offsetHeight}px`; box.appendChild(was);
+    const a = was.animate([{transform: "none", offset: 0, easing: "cubic-bezier(.2,.6,.4,1)"}, {transform: "translateY(-6px) rotate(-.4deg)", offset: .14, easing: "cubic-bezier(.42,0,.85,.55)"}, {transform: away}],
+      {duration: Math.round(ms * .9), easing: "linear"});
+    a.onfinish = a.oncancel = () => was.remove(); FLIPS.push(a);
+  }
+}
+// One ticket's markup. depth 0 is the one in hand, 1-3 sit behind it.
+function keyData(key) {
+  if (key.startsWith("f:")) { const f = DEPF.get(key); const c = f && rowFor(f.dest); return c ? {c, fl: f} : null; }
+  const c = rowFor(key); return c ? {c, fl: null} : null;
+}
+function ticketHTML(key, k, n, depth) {
+  const {c, fl} = keyData(key);
   const home = S.home, dep = $("dep").value, ret = $("ret").value;
   const gf = `https://www.google.com/travel/flights?q=${encodeURIComponent(`Flights from ${home.i} to ${c.i} on ${dep} through ${ret}`)}`;
   const sk = `https://www.skyscanner.net/transport/flights/${home.i.toLowerCase()}/${c.i.toLowerCase()}/${dep.slice(2).replace(/-/g, "")}/${ret.slice(2).replace(/-/g, "")}/`;
   const lo = Math.round(c.eur*0.75/5)*5, hi = Math.round(c.eur*1.3/5)*5;
   const [, place] = c.n.match(/^(.*?)(?: \((.*)\))?$/);
-  const k = S.seq.indexOf(S.cur), n = S.seq.length, behind = Math.min(2, n - 1 - k);
-  const fl = S.flight, ac = fl && /^[A-Z0-9]{2}\b/.test(fl.no) ? fl.no.slice(0, 2) : null, trip = tripDays();
+  const ac = fl && /^[A-Z0-9]{2}\b/.test(fl.no) ? fl.no.slice(0, 2) : null, trip = tripDays();
   const wd = d => d.toLocaleDateString("en-GB", {weekday: "short", day: "numeric", month: "short", timeZone: "UTC"});
   // Flight row: the real flight for departures, the trip itself for places. Same three cells either way.
   const frow = fl ? `
@@ -923,8 +1145,7 @@ function select(id, opts = {}) {
       <div><span>Return</span><b>${wd(trip.b)}</b><small>${trip.days.length - 1} nights</small></div>
       <div><span>Flight time</span><b>${c.hrs ? `~${c.hrs.toFixed(1)} h` : "—"}</b><small>${c.hrs > 5.5 ? "Likely 1 stop" : "Often direct"}</small></div>`;
   const chev = up => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${up ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"}"/></svg>`;
-  box.innerHTML = `${behind > 1 ? '<div class="ghost g2" aria-hidden="true"></div>' : ""}${behind > 0 ? '<div class="ghost g1" aria-hidden="true"></div>' : ""}
-    <div class="ticket${opts.dir ? (opts.dir > 0 ? " in-next" : " in-prev") : ""}"><div class="bp-head">${ac ? `<span class="bp-logo"><img src="/api/logo?c=${ac}" alt="${esc(fl.al)}" onerror="this.parentNode.remove()"></span>` : ""}<span class="bp-title"><span class="bp-lab">Boarding pass · </span>${fmtShort(trip.a)}–${fmtShort(trip.b)}</span>
+  return `<div class="ticket ${depth ? `back d${depth}" aria-hidden="true" inert` : 'front"'} data-key="${esc(key)}"${ac ? ` data-ac="${ac}"` : ""}><div class="bp-head">${ac ? `<span class="bp-logo"><img src="/api/logo?c=${ac}" alt="${esc(fl.al)}" onerror="this.parentNode.remove()"></span>` : ""}<span class="bp-title"><span class="bp-lab">Boarding pass · </span>${fmtShort(trip.a)}–${fmtShort(trip.b)}</span>
     <span class="bp-nav">${n > 1 ? `<span class="pos" aria-live="polite">${k + 1} / ${n}</span>
       <button class="bp-step" data-d="-1" aria-label="Previous ticket" title="Previous (↑)"${k === 0 ? " disabled" : ""}>${chev(true)}</button>
       <button class="bp-step" data-d="1" aria-label="Next ticket" title="Next (↓)"${k === n - 1 ? " disabled" : ""}>${chev(false)}</button>` : ""}
@@ -951,32 +1172,49 @@ function select(id, opts = {}) {
     <div class="fchead"><span>Typical sun by month</span><small>2022–2025 average</small></div>
     <div class="months">${monthChart(c)}</div>
     <p class="caveat">The fare is a rough estimate from distance and season, not a live price.</p>
-    <div class="links"><a class="primary" href="${gf}" target="_blank" rel="noopener">Google Flights ↗</a><a href="${sk}" target="_blank" rel="noopener">Skyscanner ↗</a><button type="button" class="copy" aria-live="polite">Copy link</button></div></div></div></div>`;
-  box.querySelector(".bp-close").onclick = () => select(null);
-  box.querySelectorAll(".bp-step").forEach(b => b.onclick = () => step(+b.dataset.d));
-  // Warm up the next two airlines so flipping down never waits on a logo
-  S.seq.slice(k + 1, k + 3).forEach(q => { const f = DEPF.get(q); if (f && /^[A-Z0-9]{2}\b/.test(f.no)) { airlineColor(f.no.slice(0, 2)); new Image().src = `/api/logo?c=${f.no.slice(0, 2)}`; } });
-  if (ac) { const key = S.cur; airlineColor(ac).then(rgb => { if (!rgb || S.cur !== key) return;
-    const t = box.querySelector(".ticket"), lum = (.2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2]) / 255;
-    t.style.setProperty("--hb", `rgb(${rgb})`); t.style.setProperty("--hf", lum > .6 ? "#121212" : "#ffffff"); }); }
-  box.querySelector(".copy").onclick = async e => { const b = e.currentTarget;
+    <div class="links"><a class="primary" href="${gf}" target="_blank" rel="noopener">Google Flights ↗</a><a href="${sk}" target="_blank" rel="noopener">Skyscanner ↗</a><button type="button" class="copy" aria-live="polite">Copy link</button></div></div></div><i class="shade"></i></div>`;
+}
+function select(id, opts = {}) {
+  const prev = S.sel, prevKey = S.cur; const c = rowFor(id); const box = $("detail");
+  S.sel = c ? id : null; S.cur = c ? (opts.flight || id) : null; S.flight = c && opts.flight ? DEPF.get(opts.flight) : null;
+  if (c && !opts.dir && (!S.seq || !S.seq.includes(S.cur) || !prev)) S.seq = ticketSeq(S.cur);
+  if (!c) S.seq = null;
+  $("app").dataset.detail = c ? "1" : "";
+  if (!c) { box.hidden = true; render(false);
+    // Back on the board, land on the row the ticket came from
+    const b = prevKey && (document.querySelector(`.board [data-k="${CSS.escape(prevKey)}"]`) || document.querySelector(`.board [data-i="${prevKey}"]`));
+    if (b && b.offsetParent) { b.scrollIntoView({block: "nearest"}); b.focus({preventScroll: true}); }
+    return; }
+  const k = S.seq.indexOf(S.cur), n = S.seq.length, dir = opts.dir || 0;
+  // A real stack: the ticket in hand plus up to three opaque tickets behind it
+  const depths = [];
+  for (let d = 0; d < 4 && k + d < n; d++) if (d === 0 || keyData(S.seq[k + d])) depths.push(d);
+  stackSettle();
+  const was = dir > 0 && box.querySelector(".ticket.front");
+  if (was) was.remove();
+  box.innerHTML = depths.slice().reverse().map(d => d === 0 ? ticketHTML(S.cur, k, n, 0) : ticketHTML(S.seq[k + d], k + d, n, d)).join("");
+  box.querySelectorAll(".ticket").forEach(t => { const d = t.classList.contains("front") ? 0 : +t.className.match(/d(\d)/)[1];
+    t.style.zIndex = 10 - d; t.style.transform = stackT(d); t.querySelector(".shade").style.opacity = SHADE[d];
+    if (t.dataset.ac) paintTicket(t, t.dataset.ac); });
+  const front = box.querySelector(".ticket.front");
+  front.querySelector(".bp-close").onclick = () => select(null);
+  front.querySelectorAll(".bp-step").forEach(b => b.onclick = () => step(+b.dataset.d));
+  // Warm up the airlines just past the stack so flipping down never waits on a logo
+  S.seq.slice(k + 4, k + 6).forEach(q => { const f = DEPF.get(q); if (f && /^[A-Z0-9]{2}\b/.test(f.no)) { airlineColor(f.no.slice(0, 2)); new Image().src = `/api/logo?c=${f.no.slice(0, 2)}`; } });
+  front.querySelector(".copy").onclick = async e => { const b = e.currentTarget;
     try { await navigator.clipboard.writeText(`${SITE}/?${shareParams()}`); b.textContent = "Link copied"; } catch (err) { b.textContent = "Couldn't copy"; }
     setTimeout(() => { b.textContent = "Copy link"; }, 2000); };
   box.hidden = false; render(false);
+  if (dir) stackFlip(box, front, was, dir);
   // Keep focus where the hand is: on the arrow just used, else the close button
-  const f = opts.dir && box.querySelector(`.bp-step[data-d="${opts.dir}"]:not(:disabled)`) || box.querySelector(".bp-close");
+  const f = opts.dir && front.querySelector(`.bp-step[data-d="${opts.dir}"]:not(:disabled)`) || front.querySelector(".bp-close");
   f.focus({preventScroll: true});
   requestAnimationFrame(() => fitRoute(c, box.getBoundingClientRect().top - svg.node().getBoundingClientRect().top));
 }
 // Phone: frame home and the destination in the strip of map left above the pass
 function fitRoute(c, bottom) {
   if (!FREE || bottom - FREE.y0 < 110) return;
-  const pts = [proj([S.home.lo, S.home.la]), proj([c.lo, c.la])];
-  const [xa, xb] = d3.extent(pts, p => p[0]), [ya, yb] = d3.extent(pts, p => p[1]);
-  const y0 = FREE.y0 + 24, y1 = bottom - 28, x0 = 40, x1 = W - 40;
-  const k = Math.max(1, Math.min(12, (x1 - x0) / (xb - xa || 1), (y1 - y0) / (yb - ya || 1)));
-  const t = d3.zoomIdentity.translate((x0 + x1)/2 - k*(xa + xb)/2, (y0 + y1)/2 - k*(ya + yb)/2).scale(k);
-  svg.transition().duration(500).call(zoom.transform, t);
+  frame([S.home, c], {x0: 40, y0: FREE.y0 + 24, x1: W - 40, y1: bottom - 28}, 500);
 }
 
 // ---- Main render
@@ -995,7 +1233,7 @@ function render(recompute = true) {
   const trip = tripDays(), f = readFilters();
   if (recompute || !S.rows.length) {
     S.rows = compute(S.home, trip); S.extra = new Map();
-    computeZones(); drawZones();
+    computeField();
   }
   const rows = S.rows; rows.forEach(r => r.ok = passes(r, f));
   const key = $("sort").value;
@@ -1211,7 +1449,7 @@ $("filterToggle").addEventListener("click", e => {
 $("listToggle").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
 new ResizeObserver(() => layout()).observe($("map"));
 setSheet("peek"); $("app").dataset.step = "trip";
-render(); layout();
+render(); layout(); loadApple();
 // Opened from a shared link: go straight to the board, and the ticket if there is one
 if (Q.get("v") === "list" || Q.has("to") || Q.get("tab") === "deps") {
   setStep("results"); render(false);
