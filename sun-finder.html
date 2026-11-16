@@ -153,27 +153,38 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 /* The dot is a little sun gauge: the yellow core grows with the hours of sun */
 #pins .core { width: calc(var(--c) * 2); height: calc(var(--c) * 2); border-radius: 50%; background: var(--yellow); }
 #pins .city.out .dot { background: var(--faint); box-shadow: none; opacity: .6; }
-#pins .city.sel .dot, #pins .city.hot .dot { box-shadow: 0 0 0 2px #fff; }
 /* Pins: small airport signs with the place, its sky, hours of sun and temperature; the tip sits on the spot */
-#pins .pin { position: absolute; left: var(--dx); bottom: 8px; height: 36px; box-sizing: border-box; padding: 0 9px; border-radius: 9px; background: var(--sign); color: var(--sign-muted);
-  box-shadow: 0 0 0 1px rgba(255,255,255,.16), 0 4px 12px rgba(0,0,0,.28); display: flex; flex-direction: column; justify-content: center; gap: 2px; white-space: nowrap; text-align: left;
+/* Labels are liquid glass like the panels: the body and its tail are two glass shapes (pseudo elements, so each
+   samples the map itself), no outline. The focused one is filled solid, inverted against the rest. */
+#pins { --pin-glass: rgba(24,27,33,.5); --pin-ink: #f3f4f6; --pin-muted: #b9bfc8; --pin-sun: var(--yellow); --pin-hi: rgba(255,255,255,.28);
+  --pin-fill: #f5f6f8; --pin-fill-ink: #101217; --pin-fill-muted: #4a515c; --pin-fill-sun: #946000; --pin-badge: #101217; --pin-fill-badge: #f3f4f6; }
+#pins .pin { position: absolute; left: var(--dx); bottom: 8px; height: 36px; box-sizing: border-box; padding: 0 9px; border-radius: 10px; background: none; color: var(--pin-muted); isolation: isolate;
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; white-space: nowrap; text-align: left;
   opacity: 0; scale: .82; pointer-events: none; transform-origin: calc(var(--dx) * -1) calc(100% + 7px); transition: opacity .16s var(--ease), scale .22s cubic-bezier(.2,.9,.3,1.2); }
 #pins .pin.dn { bottom: auto; top: 8px; transform-origin: calc(var(--dx) * -1) -7px; }
 #pins .pin.on { opacity: 1; scale: 1; pointer-events: auto; }
-#pins .pin::after { content: ""; position: absolute; left: calc(var(--dx) * -1 - 6px); top: 100%; border: 6px solid transparent; border-top: 7px solid var(--sign); border-bottom: 0; }
-#pins .pin.dn::after { top: auto; bottom: 100%; border-top: 0; border-bottom: 7px solid var(--sign); }
-#pins .city.sel .pin, #pins .city.hot .pin { box-shadow: 0 0 0 1.5px rgba(255,255,255,.9), 0 4px 12px rgba(0,0,0,.28); }
-#pins .pin .nm { font: 600 11.5px/1.15 var(--sans); color: var(--sign-ink); }
+#pins .pin::before, #pins .pin::after { content: ""; position: absolute; z-index: -1; background: var(--pin-glass);
+  -webkit-backdrop-filter: blur(10px) saturate(1.8); backdrop-filter: blur(10px) saturate(1.8); transition: background-color .16s var(--ease); }
+#pins .pin::before { inset: 0; border-radius: inherit; box-shadow: inset 0 .5px 0 var(--pin-hi), inset 0 -.5px 0 rgba(255,255,255,.06), 0 6px 16px -4px rgba(0,0,0,.35); }
+#pins .pin::after { left: calc(var(--dx) * -1 - 6px); top: 100%; width: 12px; height: 7px; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+#pins .pin.dn::after { top: auto; bottom: 100%; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+#pins .city.sel .pin, #pins .city.hot .pin { --pin-glass: var(--pin-fill); --pin-hi: rgba(255,255,255,.6); --pin-ink: var(--pin-fill-ink); --pin-muted: var(--pin-fill-muted); --pin-sun: var(--pin-fill-sun); --pin-badge: var(--pin-fill-badge); }
+#pins .city.sel .pin::before, #pins .city.sel .pin::after, #pins .city.hot .pin::before, #pins .city.hot .pin::after { -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) #pins {
+  --pin-glass: rgba(250,251,252,.6); --pin-ink: #101217; --pin-muted: #3c434e; --pin-sun: #946000; --pin-hi: rgba(255,255,255,.9);
+  --pin-fill: #16191f; --pin-fill-ink: #f3f4f6; --pin-fill-muted: #b9bfc8; --pin-fill-sun: var(--yellow); --pin-badge: #f3f4f6; --pin-fill-badge: #101217; } }
+@media (prefers-reduced-transparency: reduce) { #pins { --pin-glass: var(--sign); } }
+#pins .pin .nm { font: 600 11.5px/1.15 var(--sans); color: var(--pin-ink); }
 #pins .pin .st { font: 500 10.5px/1.15 var(--mono); display: flex; align-items: center; gap: 4px; }
 #pins .pin .st svg { width: 13px; height: 13px; flex: none; }
-#pins .pin .st .h { color: var(--yellow); font-weight: 500; }
-#pins .pin .ic { display: grid; } #pins .pin .ic.clear { color: var(--yellow); }
+#pins .pin .st .h { color: var(--pin-sun); font-weight: 500; }
+#pins .pin .ic { display: grid; } #pins .pin .ic.clear { color: var(--pin-sun); }
 /* One-line pin where there is less room: name and hours of sun */
 #pins .pin.c { height: 24px; flex-direction: row; align-items: center; justify-content: flex-start; gap: 6px; border-radius: 7px; }
 #pins .pin.c .ic, #pins .pin.c .t { display: none; }
 /* "+N": more matching places tucked under this pin; tapping it zooms in on them */
 #pins .pin .n { position: absolute; right: -8px; top: -8px; min-width: 20px; height: 20px; box-sizing: border-box; padding: 0 5px; border-radius: 10px;
-  background: #eef0f3; color: #121418; font: 600 10.5px/20px var(--mono); text-align: center; box-shadow: 0 0 0 2px var(--sign), 0 2px 6px rgba(0,0,0,.3); cursor: zoom-in; }
+  background: var(--pin-ink); color: var(--pin-badge); font: 600 10.5px/20px var(--mono); text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,.3); cursor: zoom-in; }
 #pins .pin .n[hidden] { display: none; }
 #pins .pin .n:hover { filter: brightness(1.08); }
 #pins .pin .n::before { content: ""; position: absolute; inset: -8px; }
