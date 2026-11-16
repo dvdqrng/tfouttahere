@@ -308,6 +308,23 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .bp-top { border-radius: 18px 18px 0 0; }
   .bp-bot { border-radius: 0; padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px)); }
 }
+/* Desktop: the pass is a landscape ticket the width of the board, stub on the left, tear line, forecast on the right */
+@media (min-width: 761px) {
+  .detail { display: flex; align-items: stretch; width: min(860px, calc(100% - 32px)); max-height: calc(100% - 32px); }
+  .bp-top { flex: 0 0 42%; min-width: 0; border-radius: 16px 0 0 16px; padding-bottom: 18px;
+    -webkit-mask: radial-gradient(circle 9px at 100% 0, #0000 97%, #000) 0 0 / 100% 51% no-repeat, radial-gradient(circle 9px at 100% 100%, #0000 97%, #000) 0 100% / 100% 51% no-repeat;
+            mask: radial-gradient(circle 9px at 100% 0, #0000 97%, #000) 0 0 / 100% 51% no-repeat, radial-gradient(circle 9px at 100% 100%, #0000 97%, #000) 0 100% / 100% 51% no-repeat; }
+  .bp-top .kv { margin-top: auto; }
+  .bp-top .route { margin: auto 0; }
+  .route .iata { font-size: 44px; }
+  .route .city { font-size: 12.5px; }
+  .bp-bot { flex: 1; min-width: 0; border-radius: 0 16px 16px 0; padding: 18px 20px 18px 22px; overflow-y: auto;
+    -webkit-mask: radial-gradient(circle 9px at 0 0, #0000 97%, #000) 0 0 / 100% 51% no-repeat, radial-gradient(circle 9px at 0 100%, #0000 97%, #000) 0 100% / 100% 51% no-repeat;
+            mask: radial-gradient(circle 9px at 0 0, #0000 97%, #000) 0 0 / 100% 51% no-repeat, radial-gradient(circle 9px at 0 100%, #0000 97%, #000) 0 100% / 100% 51% no-repeat; }
+  .bp-bot::before { left: 0; right: auto; top: 16px; bottom: 16px; width: 1.5px; height: auto; background: repeating-linear-gradient(180deg, var(--line) 0 6px, transparent 6px 11px); }
+  .fcst div { width: auto; flex: 1 0 44px; }
+  .months svg { max-height: 80px; }
+}
 @media (max-width: 380px) {
   .spark svg { display: none; }
   .pcols, #results li button { grid-template-columns: 30px minmax(0, 1fr) 36px 40px 46px; }
