@@ -12,11 +12,22 @@ A world map for finding sunny places to travel to: filter destinations by daylig
   vercel deploy --prod --yes
   ```
 
+- **Map:** Apple Maps (MapKit JS) on the website, with the sunshine drawn on top by a WebGL shader. `api/mapkit.js` signs a short-lived token from a MapKit JS key in your Apple Developer account. Without the three env vars below (and in the standalone `sun-finder.html`) the page falls back to its built-in outline map, with the same shader:
+
+  ```bash
+  vercel env add MAPKIT_TEAM_ID production
+  vercel env add MAPKIT_KEY_ID production
+  vercel env add MAPKIT_PRIVATE_KEY production
+  ```
+
+  `MAPKIT_PRIVATE_KEY` is the full contents of the `.p8` file.
+
 ## Layout
 
 - `src.html`: the page (markup, styles, script) with data placeholders
 - `data/`: climate averages, latest forecast, world map, airports
 - `api/departures.js`: Vercel function for the live departures board
+- `api/mapkit.js`: Vercel function that issues Apple Maps tokens
 - `tools/build.py`: inlines the data, writes `sun-finder.html` and `public/index.html`
 - `tools/forecast.py`, `tools/fetch.py`: fetch the forecast and climate averages
 - `refresh.sh`: fetch the latest forecast and rebuild

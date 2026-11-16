@@ -18,7 +18,9 @@ tf outta here has no accounts, no cookies, no analytics and no ads. Everything b
 
 **Live departures.** When you open the departures tab, the page asks our server for departures from your airport. The server forwards only the three-letter airport code to AeroDataBox (via RapidAPI) to fetch the schedule. No personal data is passed on.
 
-**Fonts and scripts** are served from this site itself. Weather data is built into the page in advance, so no third-party weather service is contacted while you browse.
+**Map.** The map is Apple Maps (MapKit JS, Apple Distribution International Ltd., Ireland). To show it, your browser loads the map script and map tiles directly from Apple's servers, which therefore receive your IP address, your browser's user agent and the area of the map you are looking at. Apple says it does not tie this to an Apple account. Legal basis: legitimate interest in showing a usable map (Art. 6 (1) (f) GDPR). Apple's privacy policy: https://www.apple.com/legal/privacy/
+
+**Fonts and other scripts** are served from this site itself. Weather data is built into the page in advance, so no third-party weather service is contacted while you browse.
 
 **Links to flight search sites.** Google Flights and Skyscanner links open those sites, which have their own privacy policies. Nothing is sent to them until you click.
 
