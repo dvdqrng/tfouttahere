@@ -92,8 +92,6 @@ input:hover, select:hover { border-color: var(--sign-3); }
 button.chev { all: unset; cursor: pointer; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 7px; font-size: 10px; color: var(--sign-faint); }
 button.chev:hover { background: var(--sign-2); color: var(--sign-ink); }
 button.chev:focus-visible { outline: 2px solid var(--yellow); }
-.collapsed .panelbody { display: none; }
-.collapsed .chev { transform: rotate(180deg); }
 .group { display: flex; flex-direction: column; gap: 12px; }
 .group h2 { margin: 0; }
 label.f { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: var(--sign-muted); }
@@ -142,6 +140,14 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 /* Board (places + departures) */
 aside.list { left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(860px, calc(100% - 32px)); max-height: min(64%, calc(100% - 96px)); display: flex; flex-direction: column; overflow: hidden; }
 aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+/* Desktop board has two heights: collapsed shows a few rows so the map stays visible, extended shows the whole board */
+@media (min-width: 761px) {
+  aside.list { transition: max-height .28s cubic-bezier(.2,.8,.2,1); }
+  .app[data-step="results"][data-sheet="peek"] aside.list { max-height: min(328px, 64%); }
+  .app[data-sheet="peek"] .compare, .app[data-sheet="peek"] .foot, .app[data-sheet="peek"] .fsum { display: none; }
+  .app[data-sheet="peek"] #pane-places { overflow: hidden; }
+  .app[data-sheet="full"] #listToggle { transform: rotate(180deg); }
+}
 .listtop { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; }
 .tabs { display: flex; gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 9px; flex: 1; }
 .tabs button { flex: 1; font: 500 12.5px var(--sans); color: var(--sign-muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 8px; cursor: pointer; white-space: nowrap; }
@@ -277,7 +283,6 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
     height: var(--peek); transition: height .28s cubic-bezier(.2,.8,.2,1); padding-bottom: env(safe-area-inset-bottom, 0px); box-sizing: border-box; }
   .app[data-sheet="full"] aside.list { height: calc(100% - var(--top)); }
   .app[data-detail="1"] aside.list { display: none; }
-  aside.list.collapsed .panelbody { display: flex; }
   .listtop { flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px 10px; }
   .grab, .tripbar { touch-action: none; }
   .grab { all: unset; display: block; align-self: center; width: 100%; height: 22px; cursor: pointer; position: relative; }
@@ -366,7 +371,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
         <button role="tab" id="tab-places" data-tab="places" aria-selected="true" aria-controls="pane-places">Sunny places<span class="cnt" id="count"></span></button>
         <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today</button>
       </div>
-      <button class="chev" id="listToggle" aria-label="Collapse board" aria-expanded="true">▲</button>
+      <button class="chev" id="listToggle" aria-label="Show more of the list" aria-expanded="false">▲</button>
     </div>
     <div class="panelbody">
       <div class="pane" id="pane-places" role="tabpanel" aria-labelledby="tab-places">
@@ -605,6 +610,10 @@ gHome.append("path").attr("transform", "translate(-6.5,-6.5) scale(.82)").attr("
 gHome.append("text").attr("x", 13).attr("dy", "0.35em");
 let W = 0, H = 0, K = 1, T = d3.zoomIdentity, FREE = null;
 const screen = (la, lo) => T.apply(proj([lo, la]));
+// Desktop: the space left for zooming to places depends on how tall the board is
+function freeBottom() {
+  if (FREE && !isMobile()) FREE.y1 = H - ($("app").dataset.sheet === "full" ? H * 0.64 : Math.min(328, H * 0.64)) - 28;
+}
 function layout() {
   const r = svg.node().getBoundingClientRect(); W = r.width; H = r.height;
   svg.attr("viewBox", `0 0 ${W} ${H}`);
@@ -615,6 +624,7 @@ function layout() {
   // Desktop: the board sits bottom centre, so the map frames the space above about half the screen
   FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H * 0.34 - 12};
   proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "Sphere"});
+  freeBottom();
   gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
   gClip.selectAll("path").data(land.features).join("path").attr("d", path);
   gGrat.selectAll("path.grat").data([d3.geoGraticule10()]).join("path").attr("class", "grat").attr("d", path);
@@ -941,8 +951,10 @@ $("results").addEventListener("click", e => { const b = e.target.closest("button
 // Phone bottom sheet: "peek" shows a few rows over the map, "full" shows the whole board
 function setSheet(state) {
   $("app").dataset.sheet = state;
-  $("grab").setAttribute("aria-expanded", state === "full");
-  $("grab").setAttribute("aria-label", state === "full" ? "Show less of the list" : "Show more of the list");
+  for (const b of [$("grab"), $("listToggle")]) {
+    b.setAttribute("aria-expanded", state === "full");
+    b.setAttribute("aria-label", state === "full" ? "Show less of the list" : "Show more of the list"); }
+  freeBottom();
 }
 $("grab").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
 { let y0 = null;
@@ -953,7 +965,7 @@ $("grab").addEventListener("click", () => setSheet($("app").dataset.sheet === "f
 // Two steps in one panel: first where and when, then filters and the board
 function setStep(st) {
   $("app").dataset.step = st;
-  if (st === "trip") { if (S.sel) select(null); if (isMobile()) setSheet("peek"); }
+  if (st === "trip") { if (S.sel) select(null); setSheet("peek"); }
   layout();
 }
 $("go").addEventListener("click", () => { S.note = ""; setStep("results"); render(false); zoomNearby(true); $("tripSum").focus({preventScroll: true}); });
@@ -961,12 +973,9 @@ $("tripSum").addEventListener("click", () => { setStep("trip"); if (!isMobile())
 $("filterToggle").addEventListener("click", e => {
   const open = $("filterBox").hidden; $("filterBox").hidden = !open; $("filterSum").hidden = open;
   e.currentTarget.setAttribute("aria-expanded", open);
-  if (open && isMobile()) setSheet("full");
+  if (open) setSheet("full");
 });
-$("listToggle").addEventListener("click", e => {
-  const closed = $("list").classList.toggle("collapsed"); e.currentTarget.setAttribute("aria-expanded", !closed);
-  e.currentTarget.setAttribute("aria-label", closed ? "Expand board" : "Collapse board"); layout();
-});
+$("listToggle").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
 new ResizeObserver(() => layout()).observe($("map"));
 setSheet("peek"); $("app").dataset.step = "trip";
 render(); layout();
