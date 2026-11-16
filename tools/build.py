@@ -3,7 +3,7 @@ import pathlib
 root = pathlib.Path(__file__).resolve().parent.parent
 d = root / "data"
 s = (root / "src.html").read_text()
-for marker, f in [("/*WORLD*/null", "countries-110m.json"), ("/*CLIMATE*/[]", "climate.json"), ("/*FORECAST*/{d: {}}", "forecast.json")]:
+for marker, f in [("/*WORLD*/null", "countries-110m.json"), ("/*CLIMATE*/[]", "climate.json"), ("/*FORECAST*/{d: {}}", "forecast.json"), ("/*AIRPORTS*/[]", "airports.json")]:
     assert marker in s, marker
     s = s.replace(marker, (d / f).read_text())
 (root / "sun-finder.html").write_text(s)
