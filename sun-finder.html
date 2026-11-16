@@ -255,25 +255,28 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .ticket { position: relative; z-index: 1; display: flex; flex-direction: column; max-height: min(66vh, calc(100vh - 40px)); }
 .bp-body { overflow-y: auto; overscroll-behavior: contain; }
 /* The next tickets peek out behind the current one */
-.ghost { position: absolute; left: 0; right: 0; top: 0; height: 44px; border-radius: 16px 16px 0 0; background: color-mix(in srgb, var(--yellow) 78%, var(--sign)); transform-origin: 50% 0; pointer-events: none; }
+.ghost { position: absolute; left: 0; right: 0; top: 0; height: 44px; border-radius: 16px 16px 0 0; background: color-mix(in srgb, var(--sign) 62%, var(--bg)); transform-origin: 50% 0; pointer-events: none; }
 .ghost.g1 { transform: translateY(-9px) scale(.955); }
-.ghost.g2 { transform: translateY(-17px) scale(.91); background: color-mix(in srgb, var(--yellow) 58%, var(--sign)); }
+.ghost.g2 { transform: translateY(-17px) scale(.91); background: color-mix(in srgb, var(--sign) 38%, var(--bg)); }
 .ticket.in-next { animation: t-next .3s cubic-bezier(.2,.8,.2,1); }
 .ticket.in-prev { animation: t-prev .3s cubic-bezier(.2,.8,.2,1); }
 @keyframes t-next { from { transform: translateY(-12px) scale(.955); opacity: .5; } }
 @keyframes t-prev { from { transform: translateY(28px); opacity: 0; } }
-.bp-nav { display: flex; align-items: center; gap: 2px; }
+.bp-nav { flex: none; display: flex; align-items: center; gap: 2px; }
 .bp-nav .pos { font: 500 11.5px var(--mono); letter-spacing: 0; margin-right: 6px; white-space: nowrap; }
-.bp-step { border: 0; background: transparent; color: var(--on-yellow); width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; }
+.bp-step { border: 0; background: transparent; color: inherit; width: 34px; height: 34px; border-radius: 8px; cursor: pointer; display: grid; place-items: center; }
 .bp-step svg { width: 16px; height: 16px; }
-.bp-step:hover:not(:disabled) { background: rgba(0,0,0,.08); }
+.bp-step:hover:not(:disabled) { background: rgba(128,128,128,.22); }
 .bp-step:disabled { opacity: .3; cursor: default; }
-.bp-step:focus-visible { outline: 2px solid var(--on-yellow); outline-offset: -2px; }
-.bp-head { flex: none; display: flex; align-items: center; justify-content: space-between; height: 38px; padding: 0 4px 0 18px; border-radius: 16px 16px 0 0;
-  background: var(--yellow); color: var(--on-yellow); font: 600 11px/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; }
-.bp-close { border: 0; background: transparent; color: var(--on-yellow); font-size: 18px; line-height: 1; cursor: pointer; width: 34px; height: 34px; border-radius: 8px; }
-.bp-close:hover { background: rgba(0,0,0,.08); }
-.bp-close:focus-visible { outline: 2px solid var(--on-yellow); outline-offset: -2px; }
+.bp-step:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
+.bp-head { flex: none; display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 4px 0 12px; border-radius: 16px 16px 0 0;
+  background: var(--hb, var(--sign)); color: var(--hf, var(--sign-ink)); font: 600 11px/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; transition: background-color .25s, color .25s; }
+.bp-title { margin-right: auto; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 4px; }
+.bp-logo { flex: none; display: inline-flex; align-items: center; height: 28px; padding: 0 8px; border-radius: 7px; background: #fff; }
+.bp-logo img { height: 22px; width: auto; display: block; }
+.bp-close { border: 0; background: transparent; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; width: 34px; height: 34px; border-radius: 8px; }
+.bp-close:hover { background: rgba(128,128,128,.22); }
+.bp-close:focus-visible { outline: 2px solid currentColor; outline-offset: -2px; }
 .bp-body { display: flex; flex-direction: column; min-height: 0; }
 .bp-top, .bp-bot { background: var(--panel); padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
 /* Phone: stacked, notches on the sides where the two halves meet */
@@ -295,7 +298,12 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .kv { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 10px; }
 .kv div { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .kv span { font: 500 11px/1 var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-.kv b { font: 500 14px var(--mono); color: var(--ink); white-space: nowrap; }
+.kv b { font: 500 14px var(--mono); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kv b s { font: 400 11px var(--mono); color: var(--muted); margin-left: 3px; }
+.kv small { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: -1px; }
+.kv small.st { font-weight: 500; text-align: left; }
+.kv .st.go { color: #15803d; } .kv .st.warn { color: #b45309; } .kv .st.bad { color: #dc2626; } .kv .st.dim { color: var(--muted); }
+.fcst .typ { opacity: .5; }
 .fchead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: -6px; }
 .fchead span { font: 500 11px/1 var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .fchead small { font-size: 11px; color: var(--muted); text-align: right; }
@@ -600,8 +608,8 @@ function compute(home, trip, list = CITIES) {
       const dl = daylight(c.la, doyOf(d)); day += dl;
       const k = fc ? Math.round((d - f0) / 864e5) : -1, row = k >= 0 && k < fc.d.length ? fc.d[k] : null;
       if (row) { nf++; sun += Math.min(row[0], dl); temp += row[1]; rain += row[2] >= 1 ? 1 : 0; cloud += row[3];
-        daily.push({d, sun: row[0], t: row[1], mm: row[2], code: row[5]}); series.push({sun: row[0], dl, rain: row[2] >= 1, fc: 1}); }
-      else { const m = c.m[d.getUTCMonth()]; sun += Math.min(m[0], dl); temp += m[2]; rain += m[3] / 30; cloud += m[4]; series.push({sun: m[0], dl, rain: m[3] / 30 >= 0.3, fc: 0}); }
+        daily.push({d, sun: row[0], t: row[1], mm: row[2], code: row[5]}); series.push({d, sun: row[0], dl, rain: row[2] >= 1, fc: 1, t: row[1], k: codeIcon(row[5])}); }
+      else { const m = c.m[d.getUTCMonth()]; sun += Math.min(m[0], dl); temp += m[2]; rain += m[3] / 30; cloud += m[4]; series.push({d, sun: m[0], dl, rain: m[3] / 30 >= 0.3, fc: 0, t: m[2], k: sky({rainPct: m[3] / 30 * 100, cloud: m[4]}).k}); }
     }
     const f = fare(home, c, trip.a);
     return {...c, day: day/n, sun: sun/n, temp: temp/n, rainDays: rain, rainPct: rain/n*100, cloud: cloud/n, nf, nd: n, daily, series, ...f};
@@ -844,24 +852,58 @@ function monthChart(c) {
   </svg>`;
 }
 // Tickets come as a stack in the order of the list you opened them from; up and down moves through it
-function ticketSeq(id) {
-  const ids = S.tab === "deps" ? [...new Set([...document.querySelectorAll("#deps [data-i]")].map(b => b.dataset.i))] : S.okIds || [];
-  return ids.includes(id) ? ids : [id];
+// Departures are one ticket per flight (keys "f:…"), places one per destination
+const DEPF = new Map();
+function ticketSeq(key) {
+  const keys = key.startsWith("f:") ? [...document.querySelectorAll("#deps [data-k]")].map(b => b.dataset.k) : S.okIds || [];
+  return keys.includes(key) ? keys : [key];
+}
+function openKey(key, opts = {}) {
+  if (key.startsWith("f:")) { const f = DEPF.get(key); if (f) select(f.dest, {...opts, flight: key}); }
+  else select(key, opts);
 }
 function step(d) {
-  if (!S.sel || !S.seq) return;
-  const j = S.seq.indexOf(S.sel) + d;
+  if (!S.cur || !S.seq) return;
+  const j = S.seq.indexOf(S.cur) + d;
   if (j < 0 || j >= S.seq.length) { const t = $("detail").querySelector(".ticket"); t && t.animate([{transform: "translateY(0)"}, {transform: `translateY(${d * 6}px)`}, {transform: "translateY(0)"}], 220); return; }
-  select(S.seq[j], {dir: d});
+  openKey(S.seq[j], {dir: d});
+}
+// Airline colours come from the logo itself: the most frequent saturated colour, else its darkest ink
+const AIRCOL = new Map();
+function airlineColor(code) {
+  if (AIRCOL.has(code)) return AIRCOL.get(code);
+  const p = new Promise(ok => {
+    const img = new Image();
+    img.onload = () => { try {
+      const W = 60, H = 20, cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+      const g = cv.getContext("2d", {willReadFrequently: true}); g.drawImage(img, 0, 0, W, H);
+      const px = g.getImageData(0, 0, W, H).data, bins = new Map(); let dark = null, dl = 1;
+      for (let i = 0; i < px.length; i += 4) {
+        const [r, gg, b, a] = [px[i], px[i+1], px[i+2], px[i+3]]; if (a < 200) continue;
+        const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), l = (mx + mn) / 510, sat = mx ? (mx - mn) / mx : 0;
+        if (l > .92) continue;
+        if (l < dl) { dl = l; dark = [r, gg, b]; }
+        if (sat < .25) continue;
+        const k = (r >> 4) << 8 | (gg >> 4) << 4 | (b >> 4), e = bins.get(k) || {w: 0, c: 0, r: 0, g: 0, b: 0};
+        e.w += .4 + sat; e.c++; e.r += r; e.g += gg; e.b += b; bins.set(k, e);
+      }
+      let best = null; for (const e of bins.values()) if (!best || e.w > best.w) best = e;
+      ok(best && best.c >= 6 ? [best.r, best.g, best.b].map(v => Math.round(v / best.c)) : dark);
+    } catch (e) { ok(null); } };
+    img.onerror = () => ok(null);
+    img.src = `/api/logo?c=${encodeURIComponent(code)}`;
+  });
+  AIRCOL.set(code, p); return p;
 }
 function select(id, opts = {}) {
-  const prev = S.sel; const c = rowFor(id); S.sel = c ? id : null; const box = $("detail");
-  if (c && !opts.dir && (!S.seq || !S.seq.includes(id) || !prev)) S.seq = ticketSeq(id);
+  const prev = S.sel, prevKey = S.cur; const c = rowFor(id); const box = $("detail");
+  S.sel = c ? id : null; S.cur = c ? (opts.flight || id) : null; S.flight = c && opts.flight ? DEPF.get(opts.flight) : null;
+  if (c && !opts.dir && (!S.seq || !S.seq.includes(S.cur) || !prev)) S.seq = ticketSeq(S.cur);
   if (!c) S.seq = null;
   $("app").dataset.detail = c ? "1" : "";
   if (!c) { box.hidden = true; render(false);
     // Back on the board, land on the row the ticket came from
-    const b = prev && document.querySelector(`.board [data-i="${prev}"]`);
+    const b = prevKey && (document.querySelector(`.board [data-k="${CSS.escape(prevKey)}"]`) || document.querySelector(`.board [data-i="${prevKey}"]`));
     if (b && b.offsetParent) { b.scrollIntoView({block: "nearest"}); b.focus({preventScroll: true}); }
     return; }
   const home = S.home, dep = $("dep").value, ret = $("ret").value;
@@ -869,13 +911,24 @@ function select(id, opts = {}) {
   const sk = `https://www.skyscanner.net/transport/flights/${home.i.toLowerCase()}/${c.i.toLowerCase()}/${dep.slice(2).replace(/-/g, "")}/${ret.slice(2).replace(/-/g, "")}/`;
   const lo = Math.round(c.eur*0.75/5)*5, hi = Math.round(c.eur*1.3/5)*5;
   const [, place] = c.n.match(/^(.*?)(?: \((.*)\))?$/);
-  const k = S.seq.indexOf(id), n = S.seq.length, behind = Math.min(2, n - 1 - k);
+  const k = S.seq.indexOf(S.cur), n = S.seq.length, behind = Math.min(2, n - 1 - k);
+  const fl = S.flight, ac = fl && /^[A-Z0-9]{2}\b/.test(fl.no) ? fl.no.slice(0, 2) : null, trip = tripDays();
+  const wd = d => d.toLocaleDateString("en-GB", {weekday: "short", day: "numeric", month: "short", timeZone: "UTC"});
+  // Flight row: the real flight for departures, the trip itself for places. Same three cells either way.
+  const frow = fl ? `
+      <div><span>Flight</span><b>${esc(fl.no)}</b><small>${esc(fl.al)}</small></div>
+      <div><span>Departs</span><b>${fl.late ? `${esc(fl.r)} <s>${esc(fl.t)}</s>` : esc(fl.t)}</b><small class="st ${fl.cls}">${esc(fl.status || "Scheduled")}</small></div>
+      <div><span>Gate</span><b>${esc(fl.gate || "—")}</b><small>${fl.term ? `Terminal ${esc(fl.term)}` : "Terminal —"}</small></div>`
+    : `
+      <div><span>Depart</span><b>${wd(trip.a)}</b><small>Any airline</small></div>
+      <div><span>Return</span><b>${wd(trip.b)}</b><small>${trip.days.length - 1} nights</small></div>
+      <div><span>Flight time</span><b>${c.hrs ? `~${c.hrs.toFixed(1)} h` : "—"}</b><small>${c.hrs > 5.5 ? "Likely 1 stop" : "Often direct"}</small></div>`;
   const chev = up => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${up ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"}"/></svg>`;
   box.innerHTML = `${behind > 1 ? '<div class="ghost g2" aria-hidden="true"></div>' : ""}${behind > 0 ? '<div class="ghost g1" aria-hidden="true"></div>' : ""}
-    <div class="ticket${opts.dir ? (opts.dir > 0 ? " in-next" : " in-prev") : ""}"><div class="bp-head"><span class="bp-title"><span class="bp-lab">Boarding pass · </span>${fmtShort(tripDays().a)}–${fmtShort(tripDays().b)}</span>
+    <div class="ticket${opts.dir ? (opts.dir > 0 ? " in-next" : " in-prev") : ""}"><div class="bp-head">${ac ? `<span class="bp-logo"><img src="/api/logo?c=${ac}" alt="${esc(fl.al)}" onerror="this.parentNode.remove()"></span>` : ""}<span class="bp-title"><span class="bp-lab">Boarding pass · </span>${fmtShort(trip.a)}–${fmtShort(trip.b)}</span>
     <span class="bp-nav">${n > 1 ? `<span class="pos" aria-live="polite">${k + 1} / ${n}</span>
-      <button class="bp-step" data-d="-1" aria-label="Previous place" title="Previous (↑)"${k === 0 ? " disabled" : ""}>${chev(true)}</button>
-      <button class="bp-step" data-d="1" aria-label="Next place" title="Next (↓)"${k === n - 1 ? " disabled" : ""}>${chev(false)}</button>` : ""}
+      <button class="bp-step" data-d="-1" aria-label="Previous ticket" title="Previous (↑)"${k === 0 ? " disabled" : ""}>${chev(true)}</button>
+      <button class="bp-step" data-d="1" aria-label="Next ticket" title="Next (↓)"${k === n - 1 ? " disabled" : ""}>${chev(false)}</button>` : ""}
       <button class="bp-close" aria-label="Close" title="Close (Esc)">×</button></span></div>
     <div class="bp-body"><div class="bp-top">
     <div class="route">
@@ -883,6 +936,7 @@ function select(id, opts = {}) {
       <div class="mid">${ICON.plane}<span>${c.hrs ? `~${c.hrs.toFixed(1)} h` : ""}</span></div>
       <div class="end to"><b class="iata">${c.i}</b><span class="city">${esc(place)}, ${esc(c.c)}</span></div>
     </div>
+    <div class="kv fl">${frow}</div>
     <div class="kv">
       <div><span>Sunshine</span><b>${c.sun.toFixed(1)} h</b></div>
       <div><span>Daylight</span><b>${c.day.toFixed(1)} h</b></div>
@@ -892,16 +946,20 @@ function select(id, opts = {}) {
       <div><span>Distance</span><b>${Math.round(c.d).toLocaleString("en-GB")} km</b></div>
     </div></div>
     <div class="bp-bot">
-    ${c.daily.length ? `<div class="fchead"><span>Daily forecast</span>${c.nf < c.nd ? `<small>${c.nd - c.nf} later days use typical weather</small>` : ""}</div>
-    <div class="fcst">${c.daily.map(x => `<div class="${codeIcon(x.code)}" title="${x.mm} mm rain, ${x.sun} h sun">
-      <span>${x.d.toLocaleDateString("en-GB", {weekday: "short", timeZone: "UTC"})} ${x.d.getUTCDate()}</span>${ICON[codeIcon(x.code)]}<b>${Math.round(x.t)}°</b><span>${Math.round(x.sun)} h sun</span></div>`).join("")}</div>`
-      : `<div class="fchead"><span>Typical weather</span><small>${c.est ? "Estimated from weather stations nearby" : "Your dates are past the 16-day forecast"}</small></div>`}
+    <div class="fchead"><span>Daily weather</span><small>${c.nf === c.nd ? "Forecast" : c.nf ? `Forecast for ${c.nf} of ${c.nd} days, pale ones are typical` : c.est ? "Typical, from weather stations nearby" : "Typical for these dates"}</small></div>
+    <div class="fcst">${c.series.map(x => `<div class="${x.k}${x.fc ? "" : " typ"}" title="${x.fc ? "Forecast" : "Typical"}: ${Math.round(x.sun)} h sun${x.rain ? ", rain likely" : ""}">
+      <span>${x.d.toLocaleDateString("en-GB", {weekday: "short", timeZone: "UTC"})} ${x.d.getUTCDate()}</span>${ICON[x.k]}<b>${Math.round(x.t)}°</b><span>${Math.round(Math.min(x.sun, x.dl))} h sun</span></div>`).join("")}</div>
     <div class="fchead"><span>Typical sun by month</span><small>2022–2025 average</small></div>
     <div class="months">${monthChart(c)}</div>
     <p class="caveat">The fare is a rough estimate from distance and season, not a live price.</p>
     <div class="links"><a class="primary" href="${gf}" target="_blank" rel="noopener">Google Flights ↗</a><a href="${sk}" target="_blank" rel="noopener">Skyscanner ↗</a><button type="button" class="copy" aria-live="polite">Copy link</button></div></div></div></div>`;
   box.querySelector(".bp-close").onclick = () => select(null);
   box.querySelectorAll(".bp-step").forEach(b => b.onclick = () => step(+b.dataset.d));
+  // Warm up the next two airlines so flipping down never waits on a logo
+  S.seq.slice(k + 1, k + 3).forEach(q => { const f = DEPF.get(q); if (f && /^[A-Z0-9]{2}\b/.test(f.no)) { airlineColor(f.no.slice(0, 2)); new Image().src = `/api/logo?c=${f.no.slice(0, 2)}`; } });
+  if (ac) { const key = S.cur; airlineColor(ac).then(rgb => { if (!rgb || S.cur !== key) return;
+    const t = box.querySelector(".ticket"), lum = (.2126 * rgb[0] + .7152 * rgb[1] + .0722 * rgb[2]) / 255;
+    t.style.setProperty("--hb", `rgb(${rgb})`); t.style.setProperty("--hf", lum > .6 ? "#121212" : "#ffffff"); }); }
   box.querySelector(".copy").onclick = async e => { const b = e.currentTarget;
     try { await navigator.clipboard.writeText(`${SITE}/?${shareParams()}`); b.textContent = "Link copied"; } catch (err) { b.textContent = "Couldn't copy"; }
     setTimeout(() => { b.textContent = "Copy link"; }, 2000); };
@@ -1035,15 +1093,20 @@ function drawDeps() {
   if (DEP.err) { ul.innerHTML = `<li class="empty">${msg[DEP.err] || `The flight data service didn't answer. <button data-retry>Try again</button>`}</li>`; return; }
   if (!DEP.data) { ul.innerHTML = ""; return; }
   let fl = DEP.data.flights.map(f => ({...f, sun: destSun(f.to)}));
+  DEPF.clear();
   const total = fl.length;
   if (S.sunnyOnly) fl = fl.filter(f => f.sun && f.sun.v !== null && f.sun.v >= minSun);
   ul.innerHTML = fl.length ? fl.map(f => {
     const [label, cls] = ST[f.st] || [f.st, ""];
     const late = f.r && f.r !== f.t && !["Departed", "EnRoute", "Canceled"].includes(f.st);
     const status = late && !label.startsWith("Cancel") && (label === "Scheduled" || !label) ? "Delayed" : label;
-    const s = f.sun && f.sun.v !== null ? f.sun : null, city = (s && s.city) || (AP.has(f.to) ? f.to : null), tag = city ? "button" : "div";
+    const s = f.sun && f.sun.v !== null ? f.sun : null, c0 = (s && s.city) || (AP.has(f.to) ? f.to : null);
+    // Only rows that can make a ticket are clickable (no weather station within 900 km means no ticket)
+    const city = c0 && rowFor(c0) ? c0 : null, tag = city ? "button" : "div";
+    const fk = `f:${f.no}@${f.t}`;
+    if (city) DEPF.set(fk, {...f, dest: city, late, status, cls: late && cls === "" ? "warn" : cls});
     const name = (f.tn || (AP.get(f.to) || [])[2] || f.to).replace(/ Island$/, "");
-    return `<li><${tag} class="dr"${city ? ` type="button" data-i="${city}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
+    return `<li><${tag} class="dr"${city ? ` type="button" data-i="${city}" data-k="${esc(fk)}"` : ""} title="${esc(f.al)}${f.term ? ` · Terminal ${esc(f.term)}` : ""}${f.gate ? ` · Gate ${esc(f.gate)}` : ""}">
       <span class="dt"><b>${late ? f.r : f.t}</b>${late ? `<s>${f.t}</s>` : ""}<span class="fn">${esc(f.no)}</span></span>
       <span class="pl"><span class="nm">${esc(name)}</span><span class="meta"><span class="code">${esc(f.to)}</span> · ${esc(f.al)}${f.sun && f.sun.hrs ? ` · ${f.sun.hrs.toFixed(1)} h` : ""}<span class="mfare">${f.sun && f.sun.eur ? ` · €${f.sun.eur}` : ""}</span></span></span>
       <span class="dsun ${s ? (s.est ? "est" : "") + (s.v >= minSun ? " hi" : "") : "est"}" title="${s ? `${s.est ? "About " : ""}${s.v.toFixed(1)} h of sun of ${s.dl.toFixed(1)} h daylight today${s.rain ? ", rain likely" : ""}` : "No weather data nearby"}"><b>${s ? `${s.est ? "~" : ""}${s.v.toFixed(s.v < 10 ? 1 : 0)}` : "–"}</b>${s ? dayBar(s) : ""}</span>
@@ -1056,8 +1119,8 @@ function drawDeps() {
 }
 $("deps").addEventListener("click", e => {
   if (e.target.closest("[data-retry]")) return loadDeps(true);
-  const b = e.target.closest("[data-i]"); if (!b) return;
-  select(b.dataset.i);
+  const b = e.target.closest("[data-k]"); if (!b) return;
+  openKey(b.dataset.k);
 });
 $("sunnyOnly").onclick = () => { S.sunnyOnly = !S.sunnyOnly; drawDeps(); };
 function setTab(t) {
@@ -1093,11 +1156,12 @@ addEventListener("keydown", e => {
   const d = {ArrowDown: 1, j: 1, ArrowUp: -1, k: -1}[e.key];
   if (d) { e.preventDefault(); step(d); }
 });
-{ let last = 0;
+{ let armed = true, quiet = 0;
   $("detail").addEventListener("wheel", e => {
-    const sc = e.target.closest(".bp-bot, .bp-body"); if (sc && sc.scrollHeight > sc.clientHeight + 2) return;
-    if (Math.abs(e.deltaY) < 12 || Date.now() - last < 450) return;
-    last = Date.now(); step(e.deltaY > 0 ? 1 : -1); }, {passive: true});
+    const sc = e.target.closest(".bp-bot, .bp-body, .fcst"); if (sc && (sc.scrollHeight > sc.clientHeight + 2) && Math.abs(e.deltaY) >= Math.abs(e.deltaX) && sc.classList.contains("bp-body")) return;
+    clearTimeout(quiet); quiet = setTimeout(() => { armed = true; }, 180);
+    if (!armed || Math.abs(e.deltaY) < 8) return;
+    armed = false; step(e.deltaY > 0 ? 1 : -1); }, {passive: true});
   let y0 = null;
   $("detail").addEventListener("pointerdown", e => { if (e.pointerType !== "mouse" && e.target.closest(".bp-head, .bp-top") && !e.target.closest("button")) y0 = e.clientY; });
   $("detail").addEventListener("pointerup", e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null; if (Math.abs(dy) > 40) step(dy < 0 ? 1 : -1); });
