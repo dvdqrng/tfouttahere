@@ -140,7 +140,7 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 .zoom svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; }
 
 /* Board (places + departures) */
-aside.list { left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(600px, calc(100% - 32px)); max-height: min(56%, calc(100% - 120px)); display: flex; flex-direction: column; overflow: hidden; }
+aside.list { left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(860px, calc(100% - 32px)); max-height: min(64%, calc(100% - 96px)); display: flex; flex-direction: column; overflow: hidden; }
 aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; flex: 1; }
 .listtop { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; }
 .tabs { display: flex; gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 9px; flex: 1; }
@@ -174,16 +174,17 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 .board li + li > * { box-shadow: inset 0 1px 0 var(--sign-line); }
 #results li button, #deps li .dr { all: unset; box-sizing: border-box; width: 100%; padding: 9px 16px; display: grid; gap: 8px; align-items: center; }
 #results li button, #deps li button.dr { cursor: pointer; }
-.pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 96px 44px 52px; }
-.dcols, #deps li .dr { grid-template-columns: 52px minmax(0, 1fr) 84px 44px 52px 76px; }
+.pcols, #results li button { grid-template-columns: 40px minmax(0, 1fr) 168px 64px 64px; gap: 14px; }
+.dcols, #deps li .dr { grid-template-columns: 60px minmax(0, 1fr) 132px 64px 64px 96px; gap: 14px; }
 #results li button:hover, #deps li button.dr:hover { background: var(--sign-2); }
 #results li button.sel { background: color-mix(in srgb, var(--yellow) 14%, transparent); }
 #results li button:focus-visible, #deps li button.dr:focus-visible { outline: 2px solid var(--yellow); outline-offset: -2px; }
 .pl { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .pl .nm { font: 500 13.5px/1.25 var(--sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pl .meta { font-size: 11.5px; color: var(--sign-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.spark { display: flex; align-items: center; gap: 4px; }
-.spark b { font: 500 12.5px var(--mono); width: 24px; text-align: right; flex: none; }
+.spark { display: flex; align-items: center; gap: 10px; }
+.spark b { font: 500 12.5px var(--mono); width: 34px; text-align: right; flex: none; }
+.dsun b { min-width: 34px; text-align: right; }
 .spark svg { display: block; overflow: visible; }
 .spark .dl { fill: rgba(255,255,255,.09); }
 .spark .s { fill: var(--yellow); } .spark .s.t { opacity: .4; }
@@ -288,7 +289,9 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .app[data-sheet="peek"] .board { overflow: hidden; }
   .app[data-sheet="peek"] .fsum, .app[data-sheet="peek"] .filters, .app[data-sheet="peek"] .foot.key { display: none; }
   .app[data-sheet="peek"] #pane-places { overflow: hidden; }
-  .dcols, #deps li .dr { grid-template-columns: 56px minmax(0, 1fr) 30px 46px 66px; }
+  .pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 98px 44px 50px; gap: 8px; }
+  .spark { gap: 4px; }
+  .dcols, #deps li .dr { grid-template-columns: 56px minmax(0, 1fr) 36px 46px 66px; gap: 8px; }
   .dt .fn { font-size: 10.5px; overflow: visible; }
   .cols .csun::after { content: "Sun"; } .cols .csun span { display: none; }
   .dsun svg, #deps .fare, .dcols .cfare { display: none; }
@@ -307,7 +310,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
 }
 @media (max-width: 380px) {
   .spark svg { display: none; }
-  .pcols, #results li button { grid-template-columns: 30px minmax(0, 1fr) 32px 36px 46px; }
+  .pcols, #results li button { grid-template-columns: 30px minmax(0, 1fr) 36px 40px 46px; }
   .dcols, #deps li .dr { grid-template-columns: 52px minmax(0, 1fr) 28px 42px 60px; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -441,7 +444,7 @@ const sky = r => r.rainPct >= 35 ? {k: "rain", t: "showery"} : r.cloud >= 62 ? {
   : r.cloud >= 38 ? {k: "partly", t: "partly cloudy"} : {k: "clear", t: "mostly sunny"};
 // Sun hours per trip day as tiny bars over a daylight track; solid = forecast, pale = typical, dot = rain
 function spark(r) {
-  const W = 68, H = 16, n = r.series.length, g = n > 12 ? 1.5 : 2.5, bw = Math.max(1.2, (W - g * (n - 1)) / n), y = v => Math.min(v, 14) / 14 * H;
+  const W = isMobile() ? 60 : 120, H = 16, n = r.series.length, g = n > 12 ? 1.5 : 2.5, bw = Math.max(1.2, (W - g * (n - 1)) / n), y = v => Math.min(v, 14) / 14 * H;
   return `<svg width="${W}" height="${H + 6}" viewBox="0 0 ${W} ${H + 6}" aria-hidden="true">${r.series.map((x, i) => { const X = (i * (bw + g)).toFixed(1);
     return `<rect class="dl" x="${X}" y="${(H - y(x.dl)).toFixed(1)}" width="${bw.toFixed(1)}" height="${y(x.dl).toFixed(1)}" rx="1"/>` +
       `<rect class="s${x.fc ? "" : " t"}" x="${X}" y="${(H - y(Math.min(x.sun, x.dl))).toFixed(1)}" width="${bw.toFixed(1)}" height="${y(Math.min(x.sun, x.dl)).toFixed(1)}" rx="1"/>` +
@@ -592,7 +595,7 @@ function layout() {
   const mobile = isMobile();
   const x0 = 8, x1 = mobile ? W - 8 : W - 64;
   // Desktop: the board sits bottom centre, so the map frames the space above about half the screen
-  FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H * 0.44 - 12};
+  FREE = {x0, x1, y0: top + 8, y1: mobile ? H - (parseFloat(getComputedStyle($("list")).getPropertyValue("--peek")) || 300) - 12 : H * 0.34 - 12};
   proj.fitExtent([[x0, FREE.y0], [x1, FREE.y1]], {type: "Sphere"});
   gLand.selectAll("path").data(land.features).join("path").attr("class", "land").attr("d", path);
   gClip.selectAll("path").data(land.features).join("path").attr("d", path);
@@ -847,7 +850,7 @@ function destSun(code) {
     city: near[1] < 80 ? near[0].c.i : null, ...f};
 }
 // Today's sun as one bar over the day's daylight
-const dayBar = s => { const w = 44, x = v => Math.min(v, 14) / 14 * w;
+const dayBar = s => { const w = isMobile() ? 44 : 80, x = v => Math.min(v, 14) / 14 * w;
   return `<svg width="${w}" height="10" viewBox="0 0 ${w} 10" aria-hidden="true"><rect class="dl" y="2" width="${x(s.dl).toFixed(1)}" height="6" rx="2"/><rect class="s" y="2" width="${x(s.v).toFixed(1)}" height="6" rx="2"/>${s.rain ? `<circle class="rn" cx="${(x(s.dl) - 2).toFixed(1)}" cy="5" r="1.6"/>` : ""}</svg>`; };
 function drawDeps() {
   const minSun = +$("minSun").value;
