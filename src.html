@@ -1415,8 +1415,8 @@ function select(id, opts = {}) {
     if (!box.hidden && !S.closing && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
       box.style.pointerEvents = "none";
       S.closing = box.animate([{translate: "0 0", opacity: 1}, {translate: "0 16px", opacity: 0}], {duration: 140, easing: "cubic-bezier(.4,0,.9,.6)"});
-      S.closing.onfinish = () => { S.closing = null; if (!S.sel) box.hidden = true; box.style.pointerEvents = ""; };
-    } else if (!S.closing) box.hidden = true;
+      S.closing.onfinish = () => { S.closing = null; if (!S.sel) box.hidden = true; box.style.pointerEvents = ""; drawCities(); }; // pins come back where the ticket was
+    } else if (!S.closing) { box.hidden = true; drawCities(); }
     markSel();
     // Back on the board, land on the row the ticket came from
     const b = prevKey && (document.querySelector(`.board [data-k="${CSS.escape(prevKey)}"]`) || document.querySelector(`.board [data-i="${prevKey}"]`));
