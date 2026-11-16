@@ -1,4 +1,4 @@
-<title>Sun Finder</title>
+<title>tf outta here</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap">
@@ -152,9 +152,15 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   aside.list { transition: max-height .28s cubic-bezier(.2,.8,.2,1); }
   .app[data-step="results"][data-sheet="peek"] aside.list { max-height: min(328px, 64%); }
   .app[data-sheet="peek"] .compare, .app[data-sheet="peek"] .foot, .app[data-sheet="peek"] .fsum { display: none; }
-  .app[data-sheet="peek"] #pane-places { overflow: hidden; }
-  .app[data-sheet="full"] #listToggle { transform: rotate(180deg); }
+  /* A handle on top and a labelled toggle make the two heights obvious */
+  .app[data-step="results"] .grab { all: unset; display: block; align-self: center; width: 100%; height: 14px; cursor: pointer; position: relative; flex: none; }
+  .grab::after { content: ""; position: absolute; left: 50%; top: 6px; width: 40px; height: 4px; margin-left: -20px; border-radius: 2px; background: var(--sign-3); }
+  .grab:hover::after { background: var(--sign-muted); }
+  .grab:focus-visible::after { background: var(--yellow); }
+  .app[data-step="results"] .tripbar { padding-top: 2px; }
 }
+button.chev.more { width: auto; padding: 0 10px; gap: 6px; display: flex; align-items: center; font: 500 12px var(--sans); color: var(--sign-muted); background: var(--sign-2); height: 32px; border-radius: 8px; }
+button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .listtop { display: flex; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; }
 .tabs { display: flex; gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 9px; flex: 1; }
 .tabs button { flex: 1; font: 500 12.5px var(--sans); color: var(--sign-muted); background: transparent; border: 0; border-radius: 7px; padding: 7px 8px; cursor: pointer; white-space: nowrap; }
@@ -323,6 +329,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   .app[data-sheet="peek"] .board { overflow: hidden; }
   .app[data-sheet="peek"] .fsum, .app[data-sheet="peek"] .filters, .app[data-sheet="peek"] .foot.key { display: none; }
   .app[data-sheet="peek"] #pane-places { overflow: hidden; }
+  .app[data-sheet="peek"] .panelbody { touch-action: none; }
   .pcols, #results li button { grid-template-columns: 34px minmax(0, 1fr) 98px 44px 50px; gap: 8px; }
   .spark { gap: 4px; }
   .dcols, #deps li .dr { grid-template-columns: 56px minmax(0, 1fr) 36px 46px 66px; gap: 8px; }
@@ -379,7 +386,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
   <aside class="list float" id="list">
     <button class="grab" id="grab" aria-label="Show more of the list" aria-expanded="false"></button>
     <section class="step-trip" id="stepTrip" aria-labelledby="tripQ">
-      <div class="brand"><span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><div><h1>Sun Finder</h1><small>Departures to daylight</small></div></div>
+      <div class="brand"><span class="picto" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></span><div><h1>tf outta here</h1><small>Departures to daylight</small></div></div>
       <h2 class="q" id="tripQ">Where are you, and when do you want to go?</h2>
       <div class="trip">
         <label><span class="caps">From</span>
@@ -402,7 +409,7 @@ aside.list .panelbody { display: flex; flex-direction: column; min-height: 0; fl
         <button role="tab" id="tab-places" data-tab="places" aria-selected="true" aria-controls="pane-places">Sunny places<span class="cnt" id="count"></span></button>
         <button role="tab" id="tab-deps" data-tab="deps" aria-selected="false" aria-controls="pane-deps" tabindex="-1">Departures today</button>
       </div>
-      <button class="chev" id="listToggle" aria-label="Show more of the list" aria-expanded="false">▲</button>
+      <button class="chev more" id="listToggle" aria-expanded="false">More <span aria-hidden="true">▴</span></button>
     </div>
     <div class="panelbody">
       <div class="pane" id="pane-places" role="tabpanel" aria-labelledby="tab-places">
@@ -975,7 +982,7 @@ function drawDeps() {
   foot.textContent = "";
   if (DEP.loading) { ul.innerHTML = '<li class="skel"></li><li class="skel"></li><li class="skel"></li>'; return; }
   const msg = {
-    offline: `Live departures load on the website. <a href="${SITE}" target="_blank" rel="noopener">Open Sun Finder ↗</a>`,
+    offline: `Live departures load on the website. <a href="${SITE}" target="_blank" rel="noopener">Open tf outta here ↗</a>`,
     not_configured: "Live departures aren't switched on yet. The flight data key still has to be added to the site.",
     bad_key: "The flight data key was rejected. Check it in the site settings.",
     rate_limited: "The flight data quota is used up for now. <button data-retry>Try again</button> later.",
@@ -1053,14 +1060,15 @@ $("results").addEventListener("click", e => { const b = e.target.closest("button
 // Phone bottom sheet: "peek" shows a few rows over the map, "full" shows the whole board
 function setSheet(state) {
   $("app").dataset.sheet = state;
-  for (const b of [$("grab"), $("listToggle")]) {
-    b.setAttribute("aria-expanded", state === "full");
-    b.setAttribute("aria-label", state === "full" ? "Show less of the list" : "Show more of the list"); }
+  for (const b of [$("grab"), $("listToggle")]) b.setAttribute("aria-expanded", state === "full");
+  $("grab").setAttribute("aria-label", state === "full" ? "Show less of the list" : "Show more of the list");
+  $("listToggle").innerHTML = state === "full" ? 'Less <span aria-hidden="true">▾</span>' : 'More <span aria-hidden="true">▴</span>';
   freeBottom();
 }
 $("grab").addEventListener("click", () => setSheet($("app").dataset.sheet === "full" ? "peek" : "full"));
+$("list").addEventListener("wheel", e => { if (!isMobile() && e.deltaY > 0 && $("app").dataset.sheet === "peek" && $("app").dataset.step === "results" && e.target.closest(".panelbody")) setSheet("full"); }, {passive: true});
 { let y0 = null;
-  $("list").addEventListener("pointerdown", e => { if (isMobile() && e.target.closest(".grab, .tripbar, .listtop") && !e.target.closest("button:not(.grab)")) y0 = e.clientY; });
+  $("list").addEventListener("pointerdown", e => { if (isMobile() && (e.target.closest(".grab, .tripbar, .listtop") && !e.target.closest("button:not(.grab)") || ($("app").dataset.sheet === "peek" && e.target.closest(".panelbody")))) y0 = e.clientY; });
   addEventListener("pointerup", e => { if (y0 === null) return; const dy = e.clientY - y0; y0 = null;
     if (dy < -24) setSheet("full"); else if (dy > 24) setSheet("peek"); });
   addEventListener("pointercancel", () => { y0 = null; }); }

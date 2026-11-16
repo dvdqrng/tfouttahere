@@ -1,4 +1,4 @@
-# Sun Finder
+# tf outta here
 
 A world map for finding sunny places to travel to: filter destinations by daylight, hours of direct sun, warmth, rain, estimated fare and flight time for your dates.
 

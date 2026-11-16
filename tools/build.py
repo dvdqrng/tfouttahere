@@ -11,7 +11,7 @@ for marker, f in [("/*WORLD*/null", "countries-110m.json"), ("/*CLIMATE*/[]", "c
 page = ('<!doctype html><html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
         '<meta name="description" content="Find where the sun is on your dates: sunshine, daylight, weather and rough fares from your airport, plus today\'s departures.">'
-        '<meta property="og:title" content="Sun Finder · tfouttahere.com"><meta property="og:type" content="website">'
+        '<meta property="og:title" content="tf outta here"><meta property="og:type" content="website">'
         '<meta property="og:description" content="Where the sun is on your dates, from your airport.">'
         '<meta property="og:url" content="https://tfouttahere.com/"><meta property="og:image" content="https://tfouttahere.com/og.png">'
         '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'
