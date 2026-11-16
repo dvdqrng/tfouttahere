@@ -13,6 +13,7 @@
   /* Signage: the same in light and dark mode, like the real thing */
   --sign: #16181c; --sign-2: #24272d; --sign-3: #30343b; --sign-ink: #f4f5f7; --sign-muted: #a7adb7; --sign-faint: #878e99;
   --sign-line: rgba(255,255,255,.08); --yellow: #ffd200; --on-yellow: #121212;
+  --accent-ink: var(--yellow); --hair: rgba(255,255,255,.16); --well: rgba(255,255,255,.09);
   --st-go: #4ad386; --st-warn: #ffb020; --st-bad: #ff6b5e;
   --shadow: 0 1px 2px rgba(16,24,40,.06), 0 12px 32px rgba(16,24,40,.16);
   --sans: "Geist", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -59,7 +60,7 @@ h1 { font: 600 15px/1.1 var(--sans); margin: 0; letter-spacing: -0.005em; white-
 .pickrow button { all: unset; box-sizing: border-box; cursor: pointer; display: flex; align-items: baseline; gap: 7px; padding: 8px 11px; border-radius: 8px; background: var(--sign-2); font: 500 13px var(--sans); color: var(--sign-ink); }
 .pickrow button:hover { background: var(--sign-3); }
 .pickrow button:focus-visible { outline: 2px solid var(--yellow); }
-.pickrow b { font: 500 12px var(--mono); color: var(--yellow); }
+.pickrow b { font: 500 12px var(--mono); color: var(--accent-ink); }
 .app[data-step="trip"] #list > :not(.step-trip):not(.grab) { display: none !important; }
 .app:not([data-step="trip"]) .step-trip { display: none; }
 #list[data-tab="deps"] .compare { display: none; }
@@ -74,7 +75,7 @@ h1 { font: 600 15px/1.1 var(--sans); margin: 0; letter-spacing: -0.005em; white-
 .ts-main .code { font-size: 15px; }
 .ts-main span:last-child { font: 500 14px var(--sans); overflow: hidden; text-overflow: ellipsis; }
 .ts-dates { font: 500 12.5px var(--mono); color: var(--sign-muted); white-space: nowrap; }
-.tripsum .edit { font: 500 12px var(--sans); color: var(--yellow); }
+.tripsum .edit { font: 500 12px var(--sans); color: var(--accent-ink); }
 .trip label { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .fromrow { display: flex; gap: 4px; min-width: 0; }
 input, select { font: 400 13.5px var(--sans); color: var(--sign-ink); background: var(--sign-2); border: 1px solid transparent; border-radius: 8px; height: 36px; padding: 0 10px; width: 100%; min-width: 0; box-sizing: border-box; }
@@ -82,7 +83,7 @@ input:hover, select:hover { border-color: var(--sign-3); }
 #home { font-weight: 500; }
 #home::placeholder { color: var(--sign-faint); }
 .iconbtn { flex: none; width: 36px; height: 36px; border: 0; border-radius: 8px; background: var(--sign-2); color: var(--sign-muted); display: grid; place-items: center; cursor: pointer; padding: 0; }
-.iconbtn:hover { color: var(--yellow); background: var(--sign-3); }
+.iconbtn:hover { color: var(--accent-ink); background: var(--sign-3); }
 .iconbtn svg { width: 16px; height: 16px; }
 .iconbtn[aria-busy=true] svg { animation: pulse 1s ease-in-out infinite; }
 @keyframes pulse { 50% { opacity: .35; } }
@@ -93,11 +94,11 @@ input:hover, select:hover { border-color: var(--sign-3); }
 .cmp > * { all: unset; box-sizing: border-box; min-width: 0; display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 10px; background: var(--sign-2); }
 .cmp b { font: 600 20px/1 var(--mono); color: var(--sign-ink); letter-spacing: -0.01em; }
 .cmp small { font-size: 11.5px; color: var(--sign-faint); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cmp .best { cursor: pointer; } .cmp .best b { color: var(--yellow); }
+.cmp .best { cursor: pointer; } .cmp .best b { color: var(--accent-ink); }
 .cmp .best:hover { background: var(--sign-3); }
 .cmp .best:focus-visible { outline: 2px solid var(--yellow); }
 .fcnote { flex-basis: 100%; }
-.code { font: 600 12px/1 var(--mono); color: var(--yellow); letter-spacing: .02em; }
+.code { font: 600 12px/1 var(--mono); color: var(--accent-ink); letter-spacing: .02em; }
 
 /* Panels */
 .panelhead { all: unset; box-sizing: border-box; display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer; padding: 14px 16px 12px; }
@@ -111,7 +112,7 @@ button.chev:focus-visible { outline: 2px solid var(--yellow); }
 label.f { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: var(--sign-muted); }
 .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .row output { font: 500 12.5px var(--mono); color: var(--sign-ink); white-space: nowrap; }
-input[type=range] { height: 16px; padding: 0; background: none; border: 0; accent-color: var(--yellow); margin: 0; }
+input[type=range] { height: 16px; padding: 0; background: none; border: 0; accent-color: var(--accent-ink); margin: 0; }
 .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; padding: 2px; background: var(--sign-2); border-radius: 9px; }
 .seg button { font: 400 12.5px var(--sans); background: transparent; color: var(--sign-muted); border: 0; border-radius: 7px; padding: 6px 2px; cursor: pointer; }
 .seg button[aria-pressed=true] { background: var(--yellow); color: var(--on-yellow); font-weight: 500; }
@@ -224,25 +225,25 @@ button.chev.more:hover { color: var(--sign-ink); background: var(--sign-3); }
 .fsum { display: flex; gap: 6px; padding: 0 12px 10px; overflow-x: auto; scrollbar-width: none; flex: none; }
 .fsum::-webkit-scrollbar { display: none; }
 .fchip { flex: none; height: 32px; padding: 0 12px; border: 1px solid transparent; border-radius: 16px; background: var(--sign-2); color: var(--sign-muted); font: 500 12px var(--sans); white-space: nowrap; cursor: pointer; }
-.fchip b { font: 600 12px var(--mono); color: var(--yellow); margin-left: 4px; }
-.fchip.any { background: transparent; border-color: rgba(255,255,255,.16); color: var(--sign-faint); }
+.fchip b { font: 600 12px var(--mono); color: var(--accent-ink); margin-left: 4px; }
+.fchip.any { background: transparent; border-color: var(--hair); color: var(--sign-faint); }
 .fchip:hover { background: var(--sign-3); color: var(--sign-ink); }
-.fchip[aria-pressed=true] { border-color: var(--yellow); color: var(--sign-ink); background: var(--sign-3); }
-.fchip.reset { background: none; color: var(--yellow); padding: 0 8px; }
+.fchip[aria-pressed=true] { border-color: var(--accent-ink); color: var(--sign-ink); background: var(--sign-3); }
+.fchip.reset { background: none; color: var(--accent-ink); padding: 0 8px; }
 .fchip:focus-visible { outline: 2px solid var(--yellow); outline-offset: 1px; }
 .fedit { margin: 0 12px 12px; padding: 12px 14px; border-radius: 12px; background: var(--sign-2); display: flex; flex-direction: column; gap: 8px; flex: none; }
 .fedit[hidden], .fedit input[hidden] { display: none; }
 .fe-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
 .fe-title { font: 500 12.5px var(--sans); color: var(--sign-muted); }
-.fe-val { font: 600 17px/1 var(--mono); color: var(--yellow); }
+.fe-val { font: 600 17px/1 var(--mono); color: var(--accent-ink); }
 .fe-presets { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .fe-presets button { height: 28px; padding: 0 10px; border: 0; border-radius: 8px; background: var(--sign-3); color: var(--sign-ink); font: 500 11.5px var(--mono); cursor: pointer; }
 .fe-presets button[aria-pressed=true] { background: var(--yellow); color: var(--on-yellow); }
-.fe-presets .done { margin-left: auto; background: none; color: var(--yellow); font: 500 12.5px var(--sans); }
+.fe-presets .done { margin-left: auto; background: none; color: var(--accent-ink); font: 500 12.5px var(--sans); }
 /* The slider: a fat track that fills with yellow up to the thumb */
 .fedit input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; padding: 0; background: none; border: 0; cursor: pointer; }
-.fedit input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--yellow) var(--p, 50%), rgba(255,255,255,.18) var(--p, 50%)); }
-.fedit input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--yellow) var(--p, 50%), rgba(255,255,255,.18) var(--p, 50%)); }
+.fedit input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--yellow) var(--p, 50%), var(--hair) var(--p, 50%)); }
+.fedit input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: linear-gradient(90deg, var(--yellow) var(--p, 50%), var(--hair) var(--p, 50%)); }
 .fedit input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.45); transition: transform .12s var(--ease); }
 .fedit input[type=range]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 0; box-shadow: 0 1px 4px rgba(0,0,0,.45); }
 .fedit input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
@@ -273,28 +274,28 @@ details.about { padding: 10px 16px 14px; }
 .spark b { font: 500 12.5px var(--mono); width: 34px; text-align: right; flex: none; }
 .dsun b { min-width: 34px; text-align: right; }
 .spark svg { display: block; overflow: visible; }
-.spark .dl { fill: rgba(255,255,255,.09); }
+.spark .dl { fill: var(--well); }
 .spark .s { fill: var(--yellow); } .spark .s.t { opacity: .4; }
 .spark .rn { fill: var(--rain); } .spark .rn.t { opacity: .45; }
 .tmp { display: flex; align-items: center; justify-content: flex-end; gap: 3px; font: 400 12.5px var(--mono); }
-.tmp svg { width: 13px; height: 13px; color: var(--sign-faint); flex: none; } .tmp.clear svg { color: var(--yellow); }
+.tmp svg { width: 13px; height: 13px; color: var(--sign-faint); flex: none; } .tmp.clear svg { color: var(--accent-ink); }
 .fare { font: 500 12.5px var(--mono); text-align: right; }
 .empty { padding: 22px 16px; color: var(--sign-muted); font-size: 13px; line-height: 1.55; }
-.empty a, .empty button { color: var(--yellow); }
+.empty a, .empty button { color: var(--accent-ink); }
 .empty button { font: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; }
 /* Departures */
 .dephead { padding: 0 16px 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; color: var(--sign-muted); }
 .dephead b { color: var(--sign-ink); font-weight: 500; }
 .chip { font: 500 12px var(--sans); color: var(--sign-muted); background: var(--sign-2); border: 0; border-radius: 999px; padding: 6px 11px; cursor: pointer; white-space: nowrap; }
 .chip[aria-pressed=true] { background: var(--yellow); color: var(--on-yellow); }
-.dt b { font: 600 13px var(--mono); color: var(--yellow); }
+.dt b { font: 600 13px var(--mono); color: var(--accent-ink); }
 .dt s { font: 400 11px var(--mono); color: var(--sign-faint); }
 .fn { font: 400 11px var(--mono); color: var(--sign-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dsun { display: flex; align-items: center; justify-content: flex-end; gap: 6px; white-space: nowrap; }
 .dsun b { font: 500 12.5px var(--mono); }
 .dsun svg { display: block; flex: none; }
-.dsun .dl { fill: rgba(255,255,255,.09); } .dsun .s { fill: var(--yellow); } .dsun .rn { fill: var(--rain); }
-.dsun.est b { color: var(--sign-muted); } .dsun.est .s { opacity: .45; } .dsun.hi b { color: var(--yellow); }
+.dsun .dl { fill: var(--well); } .dsun .s { fill: var(--yellow); } .dsun .rn { fill: var(--rain); }
+.dsun.est b { color: var(--sign-muted); } .dsun.est .s { opacity: .45; } .dsun.hi b { color: var(--accent-ink); }
 .dt { display: flex; flex-direction: column; gap: 2px; }
 .dt .fn { font-weight: 400; }
 .mfare { display: inline; }
@@ -432,7 +433,7 @@ details.about { padding: 10px 16px 14px; }
 /* Departures as a split-flap board: amber letters, one per flap, everything else in spaced mono capitals */
 #pane-deps { --flap: #f5b82e; }
 #deps .flap { display: flex; gap: 2px; overflow: hidden; perspective: 240px; padding: 1px 0; }
-#deps .flap i { flex: none; width: 15px; height: 22px; display: grid; place-items: center; font: 600 12.5px/1 var(--mono); font-style: normal; color: var(--flap);
+#deps .flap i { flex: none; width: 15px; height: 22px; display: grid; place-items: center; font: 600 12.5px/1 var(--mono); font-style: normal; color: #f5b82e;
   background: linear-gradient(#141821 0 47%, #04060a 47% 53%, #0e1118 53%); border-radius: 3px; box-shadow: inset 0 1px 0 rgba(255,255,255,.06); }
 #deps .flap i.sp { width: 6px; background: none; box-shadow: none; }
 #deps.flip .flap i:not(.sp) { animation: flapin .44s calc(var(--i) * 26ms + var(--r) * 45ms) both cubic-bezier(.3,.7,.3,1); }
@@ -454,18 +455,68 @@ details.about { padding: 10px 16px 14px; }
 .pane:not([hidden]), .fedit:not([hidden]) { animation: panein .16s var(--ease); }
 @keyframes panein { from { opacity: 0; transform: translateY(5px); } }
 
-/* Liquid glass: the panel and the map controls are tinted glass over the map, with a bright rim where the light catches */
+/* Liquid glass. Layers, bottom to top: the map seen through the glass (lightly blurred, more saturated, and bent
+   towards the edges like a lens where the browser can do it), a thin smoky tint, a soft sheen across the top, and
+   a specular rim lit from the top left with a weaker bounce on the far corner. The board is denser glass so the
+   list stays readable; the small controls are clearer. */
+.app { --glass-tint: 58%; }
+@media (min-width: 761px) { aside.list { border-radius: 24px; } }
+.legend { border-radius: 16px; }
+.zoom { border-radius: 20px; }
+.zoom button { width: 40px; height: 40px; }
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   aside.list, .legend, .zoom {
-    background: linear-gradient(180deg, color-mix(in srgb, var(--sign) 72%, transparent), color-mix(in srgb, var(--sign) 84%, transparent));
-    -webkit-backdrop-filter: blur(26px) saturate(1.8); backdrop-filter: blur(26px) saturate(1.8);
-    box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 1px rgba(255,255,255,.07), inset 0 -18px 28px -22px rgba(255,255,255,.14);
+    border-color: transparent;
+    background:
+      radial-gradient(140% 55% at 22% -8%, rgba(255,255,255,.13), rgba(255,255,255,0) 62%),
+      linear-gradient(180deg, color-mix(in srgb, var(--sign) var(--glass-tint), transparent), color-mix(in srgb, var(--sign) calc(var(--glass-tint) + 10%), transparent));
+    -webkit-backdrop-filter: blur(14px) saturate(1.9) brightness(.94); backdrop-filter: blur(14px) saturate(1.9) brightness(.94);
+    box-shadow:
+      0 24px 48px -16px rgba(5,8,14,.5), 0 3px 10px rgba(5,8,14,.22),
+      inset 0 1.5px 1px -0.5px rgba(255,255,255,.5),
+      inset 0 -1px 1px -0.5px rgba(255,255,255,.18),
+      inset 0 0 0 .5px rgba(255,255,255,.14),
+      inset 0 0 22px rgba(255,255,255,.045);
   }
-  aside.list::before, .legend::before, .zoom::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 1;
-    background: linear-gradient(135deg, rgba(255,255,255,.55), rgba(255,255,255,.06) 30%, rgba(255,255,255,.02) 68%, rgba(255,255,255,.3));
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+  aside.list { --glass-tint: 66%; }
+  .legend, .zoom { --glass-tint: 40%; }
+  /* The rim: bright where the light hits the top-left bevel, dark-clear along the sides, a faint catch bottom right */
+  aside.list::before, .legend::before, .zoom::before { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; pointer-events: none; z-index: 1;
+    background:
+      linear-gradient(155deg, rgba(255,255,255,.85) 0%, rgba(255,255,255,.28) 9%, rgba(255,255,255,.05) 26%, rgba(255,255,255,0) 50%, rgba(255,255,255,.06) 76%, rgba(255,255,255,.42) 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+    mix-blend-mode: plus-lighter; }
+  /* Where the lens filter runs, the glass is clearer: the bending at the edge does the work the frosting did */
+  .lens aside.list { --glass-tint: 60%; }
+  .lens .legend, .lens .zoom { --glass-tint: 30%; }
   /* Inside the glass, wells and chips are lighter glass rather than solid blocks */
   aside.list, .zoom, .legend { --sign-2: rgba(255,255,255,.09); --sign-3: rgba(255,255,255,.16); --sign-muted: #c6cbd3; --sign-faint: #aab0ba; }
+}
+/* Light mode: the map underneath is light, so the glass is too (as Apple's is), with dark type and a deeper amber
+   for accents that sit on it. Pins and the split-flap tiles stay dark signs in both modes. */
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) :is(aside.list, .legend, .zoom) {
+  --sign: #f5f6f8; --sign-ink: #101217; --sign-muted: #3c434e; --sign-faint: #5b6370; --sign-line: rgba(16,20,28,.09);
+  --sign-2: rgba(16,20,28,.06); --sign-3: rgba(16,20,28,.11); --hair: rgba(16,20,28,.18); --well: rgba(16,20,28,.08);
+  --accent-ink: #946000; --st-go: #15803d; --st-warn: #b45309; --st-bad: #dc2626; color-scheme: light; color: var(--sign-ink); }
+  :root:not([data-theme="dark"]) #pane-deps { --flap: #946000; }
+  :root:not([data-theme="dark"]) :is(.spark, .dsun) .s { fill: #f2ae00; }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root:not([data-theme="dark"]) :is(aside.list, .legend, .zoom) {
+      -webkit-backdrop-filter: blur(14px) saturate(1.7) brightness(1.06); backdrop-filter: blur(14px) saturate(1.7) brightness(1.06);
+      background:
+        radial-gradient(140% 55% at 22% -8%, rgba(255,255,255,.55), rgba(255,255,255,0) 62%),
+        linear-gradient(180deg, color-mix(in srgb, var(--sign) var(--glass-tint), transparent), color-mix(in srgb, var(--sign) calc(var(--glass-tint) + 8%), transparent));
+      box-shadow:
+        0 24px 48px -18px rgba(20,32,56,.32), 0 2px 8px rgba(20,32,56,.12),
+        inset 0 1.5px 1px -0.5px rgba(255,255,255,.95),
+        inset 0 -1px 1px -0.5px rgba(255,255,255,.6),
+        inset 0 0 0 .5px rgba(16,20,28,.08),
+        inset 0 0 24px rgba(255,255,255,.35); }
+    :root:not([data-theme="dark"]) aside.list { --glass-tint: 70%; }
+    :root:not([data-theme="dark"]) :is(.legend, .zoom) { --glass-tint: 52%; }
+    :root:not([data-theme="dark"]).lens aside.list { --glass-tint: 64%; }
+    :root:not([data-theme="dark"]).lens :is(.legend, .zoom) { --glass-tint: 42%; }
+  }
 }
 @media (prefers-reduced-transparency: reduce) { aside.list, .legend, .zoom { background: var(--sign); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -1015,6 +1066,52 @@ void main() {
     // Leave the frame budget to a short animation elsewhere, e.g. a ticket flip
     rest(ms) { hold = performance.now() + ms; }};
 })();
+
+// ---- Lens: like a thick pane with rounded edges, the glass bends the map it sits on towards its rim. Each glass
+// element gets an SVG filter with a displacement map built from its own shape (strong at the rim, none past the
+// bevel), rebuilt when it changes size. Only Chromium can run SVG filters as a backdrop; elsewhere the glass is frosted.
+(function lens(els) {
+  if (!/Chrome\/|Edg\//.test(navigator.userAgent) || matchMedia("(prefers-reduced-transparency: reduce)").matches) return;
+  const NS = "http://www.w3.org/2000/svg", host = document.createElementNS(NS, "svg");
+  host.setAttribute("aria-hidden", "true"); host.style.cssText = "position:absolute;width:0;height:0;pointer-events:none";
+  document.body.append(host);
+  function build(el, n) {
+    const w = el.offsetWidth, h = el.offsetHeight; if (w < 8 || h < 8) return;
+    const lum = isDark() ? .94 : 1.06, key = w + "x" + h + lum; if (el.dataset.lens === key) return; el.dataset.lens = key;
+    const r = Math.min(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 12, w / 2, h / 2);
+    const bez = Math.min(el.tagName === "ASIDE" ? 26 : 15, w / 2, h / 2), k = 0.5;
+    const cw = Math.max(2, Math.round(w * k)), ch = Math.max(2, Math.round(h * k));
+    const cv = document.createElement("canvas"); cv.width = cw; cv.height = ch;
+    const ctx = cv.getContext("2d"), img = ctx.createImageData(cw, ch), px = img.data, hx = w / 2, hy = h / 2;
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+      const x = (i + .5) / k - hx, y = (j + .5) / k - hy, qx = Math.abs(x) - (hx - r), qy = Math.abs(y) - (hy - r);
+      let d, nx, ny;
+      if (qx > 0 && qy > 0) { const l = Math.hypot(qx, qy) || 1; d = r - l; nx = qx / l; ny = qy / l; }
+      else if (qx > qy) { d = r - qx; nx = 1; ny = 0; } else { d = r - qy; nx = 0; ny = 1; }
+      nx *= x < 0 ? -1 : 1; ny *= y < 0 ? -1 : 1;
+      // How far in from the rim, 0..1 across the bevel; the surface curves like a squircle, so it bends hardest at the rim
+      const s = Math.max(0, Math.min(1, d / bez)), m = Math.pow(1 - s, 2.2);
+      const o = (j * cw + i) * 4;
+      px[o] = 128 - nx * m * 127; px[o + 1] = 128 - ny * m * 127; px[o + 2] = 128; px[o + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    const id = "lens-" + n, big = el.tagName === "ASIDE";
+    let f = host.querySelector("#" + id);
+    if (!f) { f = document.createElementNS(NS, "filter"); f.id = id; host.append(f); }
+    f.setAttribute("x", 0); f.setAttribute("y", 0); f.setAttribute("width", w); f.setAttribute("height", h);
+    f.setAttribute("filterUnits", "userSpaceOnUse"); f.setAttribute("color-interpolation-filters", "sRGB");
+    f.innerHTML = `<feGaussianBlur in="SourceGraphic" stdDeviation="${big ? 9 : 4}" edgeMode="duplicate" result="b"/>
+      <feImage href="${cv.toDataURL()}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="m"/>
+      <feDisplacementMap in="b" in2="m" scale="${big ? 56 : 30}" xChannelSelector="R" yChannelSelector="G" result="d"/>
+      <feColorMatrix in="d" type="saturate" values="${lum > 1 ? 1.7 : 1.9}" result="s"/>
+      <feComponentTransfer in="s"><feFuncR type="linear" slope="${lum}"/><feFuncG type="linear" slope="${lum}"/><feFuncB type="linear" slope="${lum}"/></feComponentTransfer>`;
+    el.style.webkitBackdropFilter = el.style.backdropFilter = `url(#${id})`;
+  }
+  document.documentElement.classList.add("lens");
+  const ro = new ResizeObserver(es => es.forEach(e => build(e.target, els.indexOf(e.target))));
+  els.forEach((el, n) => { build(el, n); ro.observe(el); });
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => els.forEach(build));
+})([$("list"), $("legend"), document.querySelector(".zoom")]);
 
 // ---- Apple Maps (website only). /api/mapkit hands out a short-lived token; without one the outline map stays.
 function loadApple() {
