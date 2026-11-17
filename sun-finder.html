@@ -1190,8 +1190,19 @@ function loadApple() {
   }).catch(() => {});
 }
 
+// Only places with a direct flight out on the first day and back on the last. Until the schedules are in, or if they
+// can't be loaded, nothing is held back.
+const DIRECT = {k: "", out: null, back: null};
+function loadDirect() {
+  const k = S.home.i + $("dep").value + $("ret").value; if (DIRECT.k === k) return;
+  Object.assign(DIRECT, {k, out: null, back: null});
+  const got = (side, p) => p.then(fl => { if (DIRECT.k !== k) return;
+    DIRECT[side] = new Set(fl.map(f => side === "out" ? f.to : f.from)); render(false); }).catch(() => {});
+  got("out", sched(S.home.i, $("dep").value)); got("back", sched(S.home.i, $("ret").value, "arr"));
+}
+const direct = r => (!DIRECT.out || DIRECT.out.has(r.i)) && (!DIRECT.back || DIRECT.back.has(r.i));
 function passes(r, f) {
-  return r.day >= f.minDay && r.sun >= f.minSun && r.temp >= f.minTemp && r.rainPct <= f.maxRain && r.eur <= f.maxCost && r.hrs <= f.maxTime && r.r !== "Home" && r.d >= 150;
+  return direct(r) && r.day >= f.minDay && r.sun >= f.minSun && r.temp >= f.minTemp && r.rainPct <= f.maxRain && r.eur <= f.maxCost && r.hrs <= f.maxTime && r.r !== "Home" && r.d >= 150;
 }
 // Text widths for sizing the pins, measured once per string
 const TW = new Map(), tctx = document.createElement("canvas").getContext("2d");
@@ -1419,8 +1430,8 @@ function ticketHTML(key, k, n, depth) {
       <div><span>Flight</span><b>${esc(fl.no)}</b><small>${esc(fl.al)}</small></div>
       <div><span>Departs</span><b>${fl.late ? `${esc(fl.r)} <s>${esc(fl.t)}</s>` : esc(fl.t)}</b><small class="st ${fl.cls}">${esc(fl.status || "Scheduled")}</small></div>
       <div><span>Gate</span><b>${esc(fl.gate || "—")}</b><small>${fl.term ? `Terminal ${esc(fl.term)}` : "Terminal —"}</small></div></div>`
-    : `<div class="legs">${[[home.i, c.i, dep, `Out · ${wd(trip.a)}`], [c.i, home.i, ret, `Back · ${wd(trip.b)}`]].map(([a, b, day, lab]) =>
-      `<div class="leg" data-from="${esc(a)}" data-to="${esc(b)}" data-date="${esc(day)}"><div class="fchead"><span>${lab}</span><small>${esc(a)} → ${esc(b)}</small></div>
+    : `<div class="legs">${[[home.i, c.i, dep, "dep", `Out · ${wd(trip.a)}`], [c.i, home.i, ret, "arr", `Back · ${wd(trip.b)}`]].map(([a, b, day, dir, lab]) =>
+      `<div class="leg" data-from="${esc(a)}" data-to="${esc(b)}" data-date="${esc(day)}" data-dir="${dir}"><div class="fchead"><span>${lab}</span><small>${esc(a)} → ${esc(b)}</small></div>
         <ul aria-busy="true"><li class="skel"></li><li class="skel"></li></ul></div>`).join("")}</div>`;
   const chev = up => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${up ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"}"/></svg>`;
   return `<div class="ticket ${depth ? `back d${depth}" aria-hidden="true" inert` : 'front"'} data-key="${esc(key)}"${ac ? ` data-ac="${ac}"` : ""}><div class="bp-head">${ac ? `<span class="bp-logo"><img src="/api/logo?c=${ac}" alt="${esc(fl.al)}" onerror="this.parentNode.remove()"></span>` : ""}<span class="bp-title"><span class="bp-lab">Boarding pass · </span>${fmtShort(trip.a)}–${fmtShort(trip.b)}</span>
@@ -1446,9 +1457,9 @@ function ticketHTML(key, k, n, depth) {
 }
 // Scheduled flights for one airport and day, shared by every ticket that needs them
 const SCHED = new Map();
-function sched(iata, date) {
-  const k = iata + date;
-  if (!SCHED.has(k)) SCHED.set(k, fetch(`/api/schedule?iata=${encodeURIComponent(iata)}&date=${encodeURIComponent(date)}`, {headers: {accept: "application/json"}})
+function sched(iata, date, dir = "dep") {
+  const k = iata + date + dir;
+  if (!SCHED.has(k)) SCHED.set(k, fetch(`/api/schedule?iata=${encodeURIComponent(iata)}&date=${encodeURIComponent(date)}${dir === "arr" ? "&dir=arr" : ""}`, {headers: {accept: "application/json"}})
     .then(async r => { const j = await r.json().catch(() => null); if (!j) throw "offline"; if (!r.ok) throw j.error || "upstream"; return j.flights; })
     .catch(e => { SCHED.delete(k); throw typeof e === "string" ? e : "offline"; }));
   return SCHED.get(k);
@@ -1456,11 +1467,12 @@ function sched(iata, date) {
 function fillLegs(t) {
   if (t.dataset.legs) return; t.dataset.legs = "1";
   t.querySelectorAll(".leg").forEach(leg => {
-    const ul = leg.querySelector("ul"), {from, to, date} = leg.dataset;
+    const ul = leg.querySelector("ul"), {from, to, date, dir} = leg.dataset;
     const done = html => { ul.innerHTML = html; ul.removeAttribute("aria-busy"); };
-    sched(from, date).then(all => {
-      const fl = all.filter(f => f.to === to);
-      if (!fl.length) return done(`<li class="none">No direct flights that day. Expect one stop on the way.</li>`);
+    // Both legs come from the home airport's own board (departures out, arrivals back), which the place filter already loaded
+    sched(dir === "arr" ? to : from, date, dir).then(all => {
+      const fl = all.filter(f => f.from === from && f.to === to);
+      if (!fl.length) return done(`<li class="none">No direct flights that day.</li>`);
       done(fl.map((f, i) => `<li${i > 2 ? " hidden" : ""}><b>${esc(f.t)}</b><span class="ar">${f.a ? `${esc(f.a)}${f.p ? `<sup>+${f.p}</sup>` : ""}` : ""}</span><span class="no">${esc(f.no)}</span><span class="al">${esc(f.al)}</span></li>`).join("")
         + (fl.length > 3 ? `<li class="more"><button type="button">${fl.length - 3} more flight${fl.length > 4 ? "s" : ""}</button></li>` : ""));
       const more = ul.querySelector(".more button");
@@ -1582,6 +1594,7 @@ function editFilter(id) {
 }
 function render(recompute = true) {
   const trip = tripDays(), f = readFilters();
+  loadDirect();
   if (recompute || !S.rows.length) {
     S.rows = compute(S.home, trip); S.extra = new Map();
     computeField();
@@ -1603,7 +1616,7 @@ function render(recompute = true) {
       <span class="tmp ${w.k}">${ICON[w.k]}${Math.round(r.temp)}°</span>
       <span class="fare">€${r.eur}</span>
     </button></li>`; }).join("")
-    : `<li class="empty">No place passes every filter for these dates. Try lowering the sunshine or warmth minimum, or allow a longer flight.</li>`;
+    : `<li class="empty">No place passes every filter and has direct flights out and back on these dates. Try lowering the sunshine or warmth minimum, allow a longer flight, or move your dates by a day.</li>`;
   // Home weather: the nearest station within 400 km stands in for it
   const near = rows.map(r => [r, hav(S.home.la, S.home.lo, r.la, r.lo)]).sort((a, b) => a[1] - b[1])[0];
   const h = near && near[1] < 400 ? near[0] : null, best = ok[0];
