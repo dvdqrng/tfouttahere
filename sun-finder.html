@@ -179,6 +179,12 @@ details.about { display: flex; flex-direction: column; gap: 8px; }
 #pins .pin .st svg { width: 13px; height: 13px; flex: none; }
 #pins .pin .st .h { color: var(--pin-sun); font-weight: 500; }
 #pins .pin .ic { display: grid; } #pins .pin .ic.clear { color: var(--pin-sun); }
+#pins .pin .ex { display: none; color: var(--pin-muted); }
+#pins .pin.x { height: 52px; gap: 3px; }
+#pins .pin.x .ex { display: flex; }
+#pins .pin .ex svg { width: 12px; height: 12px; }
+#pins .pin .ex .fe, #pins .pin .ex .rn { margin-left: 4px; }
+#pins .pin .ex .fe, #pins .pin .ex .fh, #pins .pin .ex .rd { color: var(--pin-ink); }
 /* One-line pin where there is less room: name and hours of sun */
 #pins .pin.c { height: 24px; flex-direction: row; align-items: center; justify-content: flex-start; gap: 6px; border-radius: 7px; }
 #pins .pin.c .ic, #pins .pin.c .t { display: none; }
@@ -387,6 +393,25 @@ details.about { padding: 10px 16px 14px; }
 .kv small.st { font-weight: 500; text-align: left; }
 .kv .st.go { color: #15803d; } .kv .st.warn { color: #b45309; } .kv .st.bad { color: #dc2626; } .kv .st.dim { color: var(--muted); }
 .fcst .typ { opacity: .5; }
+/* The trip's flights, out and back */
+.legs { display: flex; flex-direction: column; gap: 16px; }
+.leg ul { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; }
+.leg li { display: grid; grid-template-columns: 44px 52px 64px minmax(0, 1fr); align-items: baseline; gap: 8px; padding: 6px 0; font-size: 12px; color: var(--muted); }
+.leg li + li { box-shadow: inset 0 1px 0 var(--line); }
+.leg li[hidden] { display: none; }
+.leg li b { font: 500 13px var(--mono); color: var(--ink); }
+.leg .ar { font: 400 12px var(--mono); color: var(--ink); }
+.leg .ar::before { content: "→ "; color: var(--faint); }
+.leg .ar:empty::before { content: ""; }
+.leg sup { font-size: 9px; margin-left: 1px; color: var(--muted); }
+.leg .no { font: 400 11.5px var(--mono); }
+.leg .al { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leg li.none, .leg li.more { display: block; }
+.leg li.more button { font: 500 12px var(--sans); color: var(--ink); background: none; border: 0; padding: 2px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: var(--faint); }
+.leg li.more button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.leg .skel { display: block; height: 12px; margin: 7px 0; border-radius: 4px; background: var(--line); animation: pulse 1.2s ease-in-out infinite; }
+.leg .skel + .skel { width: 70%; box-shadow: none; }
+.caveat:empty { display: none; }
 .fchead { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: -6px; }
 .fchead span { font: 500 11px/1 var(--sans); text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
 .fchead small { font-size: 11px; color: var(--muted); text-align: right; }
@@ -1201,16 +1226,19 @@ function drawCities() {
   for (const d of shown) {
     const [x, y] = pos.get(d.i), hrs = d.sun.toFixed(1) + "h", tmp = Math.round(d.temp) + "°", nmw = textW(short(d.n), "nm");
     const dot = {x: x - 7, y: y - 7, w: 14, h: 14};
+    // The focused pin grows a line with what you compare places by: flight time, fare and rainy days
+    const ex = lit(d) ? {fh: d.hrs ? d.hrs.toFixed(1) + "h" : "–", fe: d.eur ? "€" + d.eur : "", rd: Math.round(d.rainDays) + "/" + d.nd} : null;
+    const exw = ex ? Math.ceil(textW(ex.fh, "st") + textW(ex.fe, "st") + textW(ex.rd, "st")) + 26 + 24 : 0;
     let got = null;
     // A spot that is already under another pin joins it rather than squeezing in a pin of its own
     if (lit(d) || !lead.some(l => hit(dot, l.b))) {
-      for (const [c, w, h] of [[0, Math.ceil(Math.max(nmw, 19 + textW(hrs + " " + tmp, "st"))) + 18, 36], [1, Math.ceil(nmw + 6 + textW(hrs, "st")) + 18, 24]]) {
+      for (const [c, w, h] of [...(ex ? [[2, Math.ceil(Math.max(nmw, 19 + textW(hrs + " " + tmp, "st"), exw)) + 18, 52]] : []), [0, Math.ceil(Math.max(nmw, 19 + textW(hrs + " " + tmp, "st"))) + 18, 36], [1, Math.ceil(nmw + 6 + textW(hrs, "st")) + 18, 24]]) {
         for (const up of [1, 0]) {
           // Near the edge the sign slides inwards; its tip stays on the spot
           const b = {x: Math.max(x - w + 12, Math.min(x - 12, Math.max(4, Math.min(W - 14 - w, x - w/2)))), y: up ? y - 8 - h : y + 8, w, h};
           // keep clear of the edges, with room for a "+N" badge at the top right
           if (!lit(d) && (b.x < 4 || b.x + w > W - 14 || b.y < 12 || b.y + h > H - 4)) continue;
-          if (lit(d) || !boxes.some(q => hit(b, q))) { got = {b, c, w, up, hrs, tmp, dx: Math.round(b.x - x)}; break; }
+          if (lit(d) || !boxes.some(q => hit(b, q))) { got = {b, c, w, up, hrs, tmp, ex, dx: Math.round(b.x - x)}; break; }
         }
         if (got) break;
       }
@@ -1229,7 +1257,7 @@ function drawCities() {
     seen.add(d.i);
     let o = CITY.get(d.i);
     if (!o) { const el = document.createElement("button"); el.type = "button"; el.className = "city"; el.dataset.i = d.i; el.tabIndex = -1;
-      el.innerHTML = '<i class="dot"><i class="core"></i></i><span class="pin"><span class="nm"></span><span class="st"><span class="ic"></span><span class="h"></span><span class="t"></span></span><b class="n" title="Zoom in to see them"></b></span>';
+      el.innerHTML = '<i class="dot"><i class="core"></i></i><span class="pin"><span class="nm"></span><span class="st"><span class="ic"></span><span class="h"></span><span class="t"></span></span><span class="st ex"><span class="ic">'+ICON.plane+'</span><span class="fh"></span><span class="fe"></span><span class="ic rn">'+ICON.rain+'</span><span class="rd"></span></span><b class="n" title="Zoom in to see them"></b></span>';
       pinsEl.appendChild(el); o = {el, pin: el.querySelector(".pin")}; CITY.set(d.i, o); }
     const [x, y] = pos.get(d.i);
     o.el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
@@ -1240,15 +1268,16 @@ function drawCities() {
       o.el.className = "city" + (on ? "" : " out") + (d.i === S.sel ? " sel" : "") + (d.i === S.hot ? " hot" : "");
       o.el.style.setProperty("--r", r + "px"); o.el.style.setProperty("--c", (on ? r * (0.28 + 0.5 * Math.min(1, d.sun / 11)) : 0).toFixed(1) + "px");
       o.el.style.zIndex = lit(d) ? 3 : q ? 2 : d.ok ? 1 : 0;
-      o.el.title = `${d.n}: ${d.sun.toFixed(1)} h sun, ${d.day.toFixed(1)} h daylight, ${Math.round(d.temp)}°C`; }
-    const psig = q ? [q.w, q.up, q.c, q.n, q.hrs, q.tmp, k, q.dx].join() : "";
+      o.el.title = `${d.n}: ${d.sun.toFixed(1)} h sun, ${Math.round(d.temp)}°C high, ${Math.round(d.rainDays)} of ${d.nd} days with rain${d.hrs ? `, ~${d.hrs.toFixed(1)} h flight` : ""}${d.eur ? `, fare about €${d.eur}` : ""}`; }
+    const psig = q ? [q.w, q.up, q.c, q.n, q.hrs, q.tmp, k, q.dx, q.ex ? q.ex.fh + q.ex.fe + q.ex.rd : ""].join() : "";
     if (psig !== o.psig) { o.psig = psig; o.pin.classList.toggle("on", !!q);
       if (q) { // a pin that goes away keeps its last face while it fades
-        o.pin.classList.toggle("dn", !q.up); o.pin.classList.toggle("c", !!q.c); o.pin.style.width = q.w + "px"; o.pin.style.setProperty("--dx", q.dx + "px");
+        o.pin.classList.toggle("dn", !q.up); o.pin.classList.toggle("c", q.c === 1); o.pin.classList.toggle("x", q.c === 2); o.pin.style.width = q.w + "px"; o.pin.style.setProperty("--dx", q.dx + "px");
         const n = o.pin.querySelector(".n"); n.textContent = q.n ? "+" + q.n : ""; n.hidden = !q.n;
         o.pin.querySelector(".nm").textContent = short(d.n);
         const ic = o.pin.querySelector(".ic"); ic.className = "ic " + k; ic.innerHTML = ICON[k];
-        o.pin.querySelector(".h").textContent = q.hrs; o.pin.querySelector(".t").textContent = q.tmp; } }
+        o.pin.querySelector(".h").textContent = q.hrs; o.pin.querySelector(".t").textContent = q.tmp;
+        if (q.ex) { o.pin.querySelector(".fh").textContent = q.ex.fh; o.pin.querySelector(".fe").textContent = q.ex.fe; o.pin.querySelector(".rd").textContent = q.ex.rd; } } }
   }
   for (const [id, o] of CITY) if (!seen.has(id)) { o.el.remove(); CITY.delete(id); }
   homeEl.style.transform = `translate3d(${hp[0].toFixed(1)}px,${hp[1].toFixed(1)}px,0)`; homeEl.lastChild.textContent = S.home.i;
@@ -1385,15 +1414,14 @@ function ticketHTML(key, k, n, depth) {
   const [, place] = c.n.match(/^(.*?)(?: \((.*)\))?$/);
   const ac = fl && /^[A-Z0-9]{2}\b/.test(fl.no) ? fl.no.slice(0, 2) : null, trip = tripDays();
   const wd = d => d.toLocaleDateString("en-GB", {weekday: "short", day: "numeric", month: "short", timeZone: "UTC"});
-  // Flight row: the real flight for departures, the trip itself for places. Same three cells either way.
-  const frow = fl ? `
+  // Departures: the live flight. Places: the actual flights on the trip's dates, out and back, filled in once loaded.
+  const frow = fl ? `<div class="kv fl">
       <div><span>Flight</span><b>${esc(fl.no)}</b><small>${esc(fl.al)}</small></div>
       <div><span>Departs</span><b>${fl.late ? `${esc(fl.r)} <s>${esc(fl.t)}</s>` : esc(fl.t)}</b><small class="st ${fl.cls}">${esc(fl.status || "Scheduled")}</small></div>
-      <div><span>Gate</span><b>${esc(fl.gate || "—")}</b><small>${fl.term ? `Terminal ${esc(fl.term)}` : "Terminal —"}</small></div>`
-    : `
-      <div><span>Depart</span><b>${wd(trip.a)}</b><small>Any airline</small></div>
-      <div><span>Return</span><b>${wd(trip.b)}</b><small>${trip.days.length - 1} nights</small></div>
-      <div><span>Flight time</span><b>${c.hrs ? `~${c.hrs.toFixed(1)} h` : "—"}</b><small>${c.hrs > 5.5 ? "Likely 1 stop" : "Often direct"}</small></div>`;
+      <div><span>Gate</span><b>${esc(fl.gate || "—")}</b><small>${fl.term ? `Terminal ${esc(fl.term)}` : "Terminal —"}</small></div></div>`
+    : `<div class="legs">${[[home.i, c.i, dep, `Out · ${wd(trip.a)}`], [c.i, home.i, ret, `Back · ${wd(trip.b)}`]].map(([a, b, day, lab]) =>
+      `<div class="leg" data-from="${esc(a)}" data-to="${esc(b)}" data-date="${esc(day)}"><div class="fchead"><span>${lab}</span><small>${esc(a)} → ${esc(b)}</small></div>
+        <ul aria-busy="true"><li class="skel"></li><li class="skel"></li></ul></div>`).join("")}</div>`;
   const chev = up => `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${up ? "M4 10l4-4 4 4" : "M4 6l4 4 4-4"}"/></svg>`;
   return `<div class="ticket ${depth ? `back d${depth}" aria-hidden="true" inert` : 'front"'} data-key="${esc(key)}"${ac ? ` data-ac="${ac}"` : ""}><div class="bp-head">${ac ? `<span class="bp-logo"><img src="/api/logo?c=${ac}" alt="${esc(fl.al)}" onerror="this.parentNode.remove()"></span>` : ""}<span class="bp-title"><span class="bp-lab">Boarding pass · </span>${fmtShort(trip.a)}–${fmtShort(trip.b)}</span>
     <span class="bp-nav">${n > 1 ? `<span class="pos" aria-live="polite">${k + 1} / ${n}</span>
@@ -1406,23 +1434,39 @@ function ticketHTML(key, k, n, depth) {
       <div class="mid">${ICON.plane}<span>${c.hrs ? `~${c.hrs.toFixed(1)} h` : ""}</span></div>
       <div class="end to"><b class="iata">${c.i}</b><span class="city">${esc(place)}, ${esc(c.c)}</span></div>
     </div>
-    <div class="kv fl">${frow}</div>
-    <div class="kv">
-      <div><span>Sunshine</span><b>${c.sun.toFixed(1)} h</b></div>
-      <div><span>Daylight</span><b>${c.day.toFixed(1)} h</b></div>
-      <div><span>High</span><b>${Math.round(c.temp)}°C</b></div>
-      <div><span>Rain</span><b>${Math.round(c.rainDays)}/${c.nd} d</b></div>
-      <div><span>Fare est.</span><b>${c.eur ? `€${lo}–${hi}` : "—"}</b></div>
-      <div><span>Distance</span><b>${Math.round(c.d).toLocaleString("en-GB")} km</b></div>
-    </div></div>
-    <div class="bp-bot">
+    ${fl ? frow : ""}</div>
+    <div class="bp-bot">${fl ? "" : frow}
     <div class="fchead"><span>Daily weather</span><small>${c.nf === c.nd ? "Forecast" : c.nf ? `Forecast for ${c.nf} of ${c.nd} days, pale ones are typical` : c.est ? "Typical, from weather stations nearby" : "Typical for these dates"}</small></div>
     <div class="fcst">${c.series.map(x => `<div class="${x.k}${x.fc ? "" : " typ"}" title="${x.fc ? "Forecast" : "Typical"}: ${Math.round(x.sun)} h sun${x.rain ? ", rain likely" : ""}">
       <span>${x.d.toLocaleDateString("en-GB", {weekday: "short", timeZone: "UTC"})} ${x.d.getUTCDate()}</span>${ICON[x.k]}<b>${Math.round(x.t)}°</b><span class="hs">${Math.round(Math.min(x.sun, x.dl))}h</span></div>`).join("")}</div>
     <div class="fchead"><span>Typical sun by month</span><small>2022–2025 average</small></div>
     <div class="months">${monthChart(c)}</div>
-    <p class="caveat">The fare is a rough estimate from distance and season, not a live price.</p>
+    <p class="caveat">${c.eur ? `Return fares here run about €${lo}–${hi}. That's an estimate from distance and season, not a live price.` : ""}</p>
     <div class="links"><a class="primary" href="${gf}" target="_blank" rel="noopener">Google Flights ↗</a><a href="${sk}" target="_blank" rel="noopener">Skyscanner ↗</a><button type="button" class="copy" aria-live="polite">Copy link</button></div></div></div><i class="shade"></i></div>`;
+}
+// Scheduled flights for one airport and day, shared by every ticket that needs them
+const SCHED = new Map();
+function sched(iata, date) {
+  const k = iata + date;
+  if (!SCHED.has(k)) SCHED.set(k, fetch(`/api/schedule?iata=${encodeURIComponent(iata)}&date=${encodeURIComponent(date)}`, {headers: {accept: "application/json"}})
+    .then(async r => { const j = await r.json().catch(() => null); if (!j) throw "offline"; if (!r.ok) throw j.error || "upstream"; return j.flights; })
+    .catch(e => { SCHED.delete(k); throw typeof e === "string" ? e : "offline"; }));
+  return SCHED.get(k);
+}
+function fillLegs(t) {
+  if (t.dataset.legs) return; t.dataset.legs = "1";
+  t.querySelectorAll(".leg").forEach(leg => {
+    const ul = leg.querySelector("ul"), {from, to, date} = leg.dataset;
+    const done = html => { ul.innerHTML = html; ul.removeAttribute("aria-busy"); };
+    sched(from, date).then(all => {
+      const fl = all.filter(f => f.to === to);
+      if (!fl.length) return done(`<li class="none">No direct flights that day. Expect one stop on the way.</li>`);
+      done(fl.map((f, i) => `<li${i > 2 ? " hidden" : ""}><b>${esc(f.t)}</b><span class="ar">${f.a ? `${esc(f.a)}${f.p ? `<sup>+${f.p}</sup>` : ""}` : ""}</span><span class="no">${esc(f.no)}</span><span class="al">${esc(f.al)}</span></li>`).join("")
+        + (fl.length > 3 ? `<li class="more"><button type="button">${fl.length - 3} more flight${fl.length > 4 ? "s" : ""}</button></li>` : ""));
+      const more = ul.querySelector(".more button");
+      if (more) more.onclick = () => { ul.querySelectorAll("li[hidden]").forEach(li => li.hidden = false); more.parentNode.remove(); };
+    }).catch(e => { t.dataset.legs = ""; done(`<li class="none">${e === "offline" ? "Flight times load on the website." : "Flight times aren't available right now."}</li>`); });
+  });
 }
 // Selecting only moves the highlight in the list and on the map; the list itself is not rebuilt
 function markSel() {
@@ -1469,6 +1513,7 @@ function select(id, opts = {}) {
   }
   have.forEach(t => t.remove());
   const front = box.querySelector(".ticket.front");
+  fillLegs(front);
   front.querySelector(".bp-close").onclick = () => select(null);
   front.querySelectorAll(".bp-step").forEach(b => b.onclick = () => step(+b.dataset.d));
   // Warm up the airlines just past the stack so flipping down never waits on a logo
